@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/11/2018"
+__date__ = "26/11/2018"
 
 import fabio
 import numpy
@@ -47,6 +47,7 @@ from .helper.SynchronizeRawView import SynchronizeRawView
 from .CalibrationContext import CalibrationContext
 from ..utils import units
 from ..utils import FilterBuilder
+from .helper.SynchronizePlotBackground import SynchronizePlotBackground
 
 _logger = logging.getLogger(__name__)
 
@@ -67,6 +68,8 @@ class ExperimentTask(AbstractCalibrationTask):
 
         self.__plot = self.__createPlot(parent=self._imageHolder)
         self.__plot.setObjectName("plot-experiment")
+        self.__plotBackground = SynchronizePlotBackground(self.__plot)
+
         layout = qt.QVBoxLayout(self._imageHolder)
         layout.addWidget(self.__plot)
         layout.setContentsMargins(1, 1, 1, 1)

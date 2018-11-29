@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "28/11/2018"
 
 import logging
 import numpy
@@ -488,8 +488,6 @@ class _RingPlot(silx.gui.plot.PlotWidget):
         handle = self.getWidgetHandle()
         handle.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         handle.customContextMenuRequested.connect(self.__plotContextMenu)
-
-        self.__plotBackground = SynchronizePlotBackground(self)
 
         if hasattr(self, "centralWidget"):
             self.centralWidget().installEventFilter(self)
@@ -1104,5 +1102,11 @@ class GeometryTask(AbstractCalibrationTask):
             self.__plot.removeImage("image")
 
     def __widgetShow(self):
+        if not self.__peaksInvalidated:
+            # In case of the very first time
+            geometry = self.model().fittedGeometry()
+            peakPickingSelection = self.model().peakSelectionModel()
+            self.__peaksInvalidated = len(peakPickingSelection) != 0 and not geometry.isValid()
+
         if self.__peaksInvalidated:
             self.__initGeometryLater()

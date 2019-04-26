@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/03/2019"
+__date__ = "08/04/2019"
 
 import numpy
 from .AbstractModel import AbstractModel
@@ -110,6 +110,7 @@ class PeakModel(AbstractModel):
         assert(isinstance(coords, numpy.ndarray))
         assert(len(coords.shape) == 2)
         assert(coords.shape[1] == 2)
+        coords = numpy.ascontiguousarray(coords)
         coords.flags['WRITEABLE'] = False
         self.__coords = coords
         self.wasChanged()
@@ -138,15 +139,15 @@ class PeakModel(AbstractModel):
         # Convert to structured array to use setdiff1d
         dtype = self.__coords.dtype.descr * self.__coords.shape[1]
         previous_coords = self.__coords.view(dtype)
+        coords = numpy.ascontiguousarray(coords)
         new_coords = coords.view(dtype)
-        new_coords = numpy.setdiff1d(previous_coords, new_coords)
+        new_coords = numpy.setdiff1d(new_coords, previous_coords)
         if len(new_coords) == 0:
             return
         new_coords = new_coords.view(self.__coords.dtype)
-        print(self.__coords)
-        print(new_coords)
-        print(self.__coords.shape, new_coords.shape)
+        new_coords.shape = -1, 2
         self.__coords = numpy.vstack((self.__coords, new_coords))
+        self.__coords = numpy.ascontiguousarray(self.__coords)
         self.wasChanged()
 
     def ringNumber(self):

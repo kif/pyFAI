@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "22/03/2019"
+__date__ = "16/04/2019"
 
 import logging
 import numpy
@@ -55,6 +55,8 @@ from ..helper import ProcessingWidget
 from ..utils import FilterBuilder
 from ..utils import validators
 from ..helper import model_transform
+from ..widgets.ColoredCheckBox import ColoredCheckBox
+from ..widgets.AdvancedSpinBox import AdvancedSpinBox
 
 
 _logger = logging.getLogger(__name__)
@@ -100,8 +102,10 @@ class _PeakSelectionTableView(qt.QTableView):
         palette.setColor(qt.QPalette.Base, palette.base().color())
         ringDelegate.setPalette(palette)
         toolDelegate = _PeakToolItemDelegate(self)
+        enabledDelegate = _PeakEnabledItemDelegate(self)
         self.setItemDelegateForColumn(_PeakSelectionTableModel.ColumnRingNumber, ringDelegate)
         self.setItemDelegateForColumn(_PeakSelectionTableModel.ColumnControl, toolDelegate)
+        self.setItemDelegateForColumn(_PeakSelectionTableModel.ColumnEnabled, enabledDelegate)
 
         self.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
@@ -193,6 +197,8 @@ class _PeakSelectionTableView(qt.QTableView):
             self.openPersistentEditor(index)
             index = model.index(row, _PeakSelectionTableModel.ColumnControl, qt.QModelIndex())
             self.openPersistentEditor(index)
+            index = model.index(row, _PeakSelectionTableModel.ColumnEnabled, qt.QModelIndex())
+            self.openPersistentEditor(index)
 
     def __openPersistantViewOnModelReset(self):
         model = self.model()
@@ -209,10 +215,10 @@ class _PeakSelectionTableModel(qt.QAbstractTableModel):
 
     requestChangeEnable = qt.Signal(object, bool)
 
-    ColumnName = 0
-    ColumnPeaksCount = 1
-    ColumnRingNumber = 2
-    ColumnEnabled = 3
+    ColumnEnabled = 0
+    ColumnName = 1
+    ColumnPeaksCount = 2
+    ColumnRingNumber = 3
     ColumnControl = 4
 
     def __init__(self, parent, peakSelectionModel):
@@ -259,20 +265,12 @@ class _PeakSelectionTableModel(qt.QAbstractTableModel):
         elif section == self.ColumnRingNumber:
             return "Ring number"
         elif section == self.ColumnEnabled:
-            return "Enabled"
+            return ""
         elif section == self.ColumnControl:
             return ""
         return None
 
     def flags(self, index):
-        column = index.column()
-        if column == self.ColumnRingNumber:
-            return (qt.Qt.ItemIsEnabled |
-                    qt.Qt.ItemIsSelectable)
-        elif column == self.ColumnEnabled:
-            return (qt.Qt.ItemIsEnabled |
-                    qt.Qt.ItemIsSelectable |
-                    qt.Qt.ItemIsUserCheckable)
         return (qt.Qt.ItemIsEnabled |
                 qt.Qt.ItemIsSelectable)
 
@@ -291,22 +289,7 @@ class _PeakSelectionTableModel(qt.QAbstractTableModel):
             return False
         peakModel = self.__peakSelectionModel[index.row()]
         column = index.column()
-        if role == qt.Qt.CheckStateRole:
-            if column == self.ColumnEnabled:
-                if peakModel.isEnabled():
-                    return qt.Qt.Checked
-                else:
-                    return qt.Qt.Unchecked
-        elif role == qt.Qt.DecorationRole:
-            if column == 0:
-                color = peakModel.color()
-                pixmap = qt.QPixmap(16, 16)
-                pixmap.fill(color)
-                icon = qt.QIcon(pixmap)
-                return icon
-            else:
-                return None
-        elif role == qt.Qt.DisplayRole or role == qt.Qt.EditRole:
+        if role == qt.Qt.DisplayRole or role == qt.Qt.EditRole:
             if column == self.ColumnName:
                 return peakModel.name()
             elif column == self.ColumnPeaksCount:
@@ -551,11 +534,12 @@ class _PeakPickingPlot(silx.gui.plot.PlotWidget):
 
     def addPeak(self, peakModel):
         color = peakModel.color()
+        if not peakModel.isEnabled():
+            context = CalibrationContext.instance()
+            color = context.disabledMarkerColor()
         numpyColor = numpy.array([color.redF(), color.greenF(), color.blueF(), 0.5])
         points = peakModel.coords()
         name = peakModel.name()
-        if not peakModel.isEnabled():
-            numpyColor = numpy.array([0.5, 0.5, 0.5, 0.5])
 
         if self.__selectedPeak is None:
             # Nothing selected
@@ -591,7 +575,6 @@ class _PeakPickingPlot(silx.gui.plot.PlotWidget):
             mask = numpy.empty(shape=(0, 0))
 
         if self.__mask is None:
-            print(mask.shape)
             self.addImage(mask,
                           legend="processing-mask",
                           selectable=False,
@@ -634,9 +617,10 @@ class _SpinBoxItemDelegate(qt.QStyledItemDelegate):
         if not index.isValid():
             return super(_SpinBoxItemDelegate, self).createEditor(parent, option, index)
 
-        editor = qt.QSpinBox(parent=parent)
+        editor = AdvancedSpinBox(parent=parent)
         if self.__palette is not None:
             editor.setPalette(self.__palette)
+        editor.setMouseWheelEnabled(False)
         editor.setMinimum(1)
         editor.setMaximum(999)
         editor.valueChanged.connect(lambda x: self.commitData.emit(editor))
@@ -676,6 +660,47 @@ class _SpinBoxItemDelegate(qt.QStyledItemDelegate):
         :param qt.QIndex index: Index of the data to display
         """
         editor.setGeometry(option.rect)
+
+
+class _PeakEnabledItemDelegate(qt.QStyledItemDelegate):
+
+    def createEditor(self, parent, option, index):
+        if not index.isValid():
+            return super(_PeakToolItemDelegate, self).createEditor(parent, option, index)
+
+        persistantIndex = qt.QPersistentModelIndex(index)
+
+        editor = ColoredCheckBox(parent=parent)
+        editor.toggled.connect(functools.partial(self.__toggleEnabled, persistantIndex))
+
+        return editor
+
+    def setEditorData(self, editor, index):
+        """
+        :param qt.QWidget editor: Editor widget
+        :param qt.QIndex index: Index of the data to display
+        """
+        model = index.model()
+        peak = model.peakObject(index)
+        old = editor.blockSignals(True)
+        editor.setChecked(peak.isEnabled())
+        editor.blockSignals(old)
+        editor.setBoxColor(peak.color())
+
+    def __toggleEnabled(self, index):
+        model = index.model()
+        peak = model.peakObject(index)
+        newValue = not peak.isEnabled()
+        newValue = qt.Qt.Checked if newValue else qt.Qt.Unchecked
+        model.setData(index, newValue, role=qt.Qt.CheckStateRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        # Center the widget to the cell
+        size = editor.sizeHint()
+        half = size / 2
+        halfPoint = qt.QPoint(half.width(), half.height())
+        pos = option.rect.center() - halfPoint
+        editor.move(pos)
 
 
 class _PeakToolItemDelegate(qt.QStyledItemDelegate):
@@ -773,6 +798,7 @@ class _RingSelectionBehaviour(qt.QObject):
         self.__ringSelectionModel = ringSelectionModel
 
         self.__peakSelectionModel.changed.connect(self.__peaksHaveChanged)
+        self.__peakSelectionModel.structureChanged.connect(self.__peaksStructureHaveChanged)
         self.__spinnerRing.valueChanged.connect(self.__spinerRingChanged)
         self.__newRingOption.toggled.connect(self.__newRingToggeled)
         if self.__ringSelectionModel is not None:
@@ -800,6 +826,7 @@ class _RingSelectionBehaviour(qt.QObject):
 
     def clear(self):
         self.__peakSelectionModel.changed.disconnect(self.__peaksHaveChanged)
+        self.__peakSelectionModel.structureChanged.disconnect(self.__peaksStructureHaveChanged)
         self.__spinnerRing.valueChanged.disconnect(self.__spinerRingChanged)
         self.__newRingOption.toggled.disconnect(self.__newRingToggeled)
         if self.__ringSelectionModel is not None:
@@ -808,6 +835,9 @@ class _RingSelectionBehaviour(qt.QObject):
 
     def __initState(self):
         self.__newRingToggeled()
+
+    def __peaksStructureHaveChanged(self):
+        self.__plot.setSelectedPeak(None)
 
     def __peaksHaveChanged(self):
         if self.__newRingOption.isChecked():
@@ -965,33 +995,34 @@ class PeakPickingTask(AbstractCalibrationTask):
         self.__plot.sigPeakPicked.connect(self.__onPickPicked)
         self.__plot.sigShapeErased.connect(self.__onShapeErased)
         self.__plot.sigShapeBrushed.connect(self.__onShapeBrushed)
+        self.__plot.sigInteractiveModeChanged.connect(self.__onPlotModeChanged)
 
         action = qt.QAction(self)
-        action.setText("Auto-extract rings")
+        action.setText("Extract rings until")
         action.setToolTip("Remove all the rings and extract it again")
-        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-ring"))
+        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-rings-to"))
         action.triggered.connect(self.__autoExtractRings)
         selectAction = self._extract.addDefaultAction(action)
         selectAction.triggered.connect(self.__updateOptionToExtractAgain)
 
         action = qt.QAction(self)
-        action.setText("Auto-extract already picked rings")
+        action.setText("Extract already picked rings")
         action.setToolTip("Duplicated rings will be removed")
-        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-ring"))
+        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-current-rings"))
         action.triggered.connect(self.__autoExtractExistingRings)
         self._extract.addDefaultAction(action)
 
         action = qt.QAction(self)
-        action.setText("Auto-extract all reachable rings")
+        action.setText("Extract all reachable rings")
         action.setToolTip("Remove all the rings and extract everything possible")
-        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-ring"))
+        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-reachable-rings"))
         action.triggered.connect(self.__autoExtractReachableRings)
         self._extract.addDefaultAction(action)
 
         action = qt.QAction(self)
-        action.setText("Auto-extract more rings")
+        action.setText("Extract more rings")
         action.setToolTip("Extract new rings after the last picked one")
-        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-ring"))
+        action.setIcon(icons.getQIcon("pyfai:gui/icons/extract-more-rings"))
         action.triggered.connect(self.__autoExtractMoreRings)
         selectAction = self._extract.addDefaultAction(action)
         selectAction.triggered.connect(self.__updateOptionToExtractMoreRings)
@@ -1044,6 +1075,18 @@ class PeakPickingTask(AbstractCalibrationTask):
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_Equal))
         self.addAction(action)
 
+    def __onPlotModeChanged(self, owner):
+        if owner is None:
+            return
+        # TODO: This condition should not be reached like that
+        if owner is not self.__plot:
+            # Here a default plot tool is triggered
+            # Set back the default tool
+            if (not self.__arcSelectionMode.isChecked() and
+                    not self.__ringSelectionMode.isChecked() and
+                    not self.__peakSelectionMode.isChecked()):
+                self.__arcSelectionMode.trigger()
+
     def __createSavePeakDialog(self):
         dialog = CalibrationContext.instance().createFileDialog(self)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
@@ -1084,7 +1127,7 @@ class PeakPickingTask(AbstractCalibrationTask):
                 self.__undoStack.push(command)
                 command.setRedoInhibited(False)
             except Exception as e:
-                _logger.error(e.args[0])
+                _logger.error(str(e))
                 _logger.error("Backtrace", exc_info=True)
                 # FIXME Display error dialog
             except KeyboardInterrupt:
@@ -1104,7 +1147,7 @@ class PeakPickingTask(AbstractCalibrationTask):
             controlPoints = model_transform.createControlPoints(self.model())
             controlPoints.save(filename)
         except Exception as e:
-            _logger.error(e.args[0])
+            _logger.error(str(e))
             _logger.error("Backtrace", exc_info=True)
             # FIXME Display error dialog
         except KeyboardInterrupt:
@@ -1147,11 +1190,13 @@ class PeakPickingTask(AbstractCalibrationTask):
             return qt.QIcon()
 
         action = self.__undoStack.createUndoAction(self, "Undo")
+        action.setShortcut(qt.QKeySequence.Undo)
         icon = createIcon(["edit-undo", qt.QStyle.SP_ArrowBack])
         action.setIcon(icon)
         toolBar.addAction(action)
 
         action = self.__undoStack.createRedoAction(self, "Redo")
+        action.setShortcut(qt.QKeySequence.Redo)
         icon = createIcon(["edit-redo", qt.QStyle.SP_ArrowForward])
         action.setIcon(icon)
         toolBar.addAction(action)
@@ -1628,22 +1673,23 @@ class PeakPickingTask(AbstractCalibrationTask):
 
         :param RingExtractorThread thread: A ring ring extractor processing
         """
+        errorMessage = None
         if thread.isAborted():
-            self.__plot.setProcessingLocation(None)
-            self.__plot.unsetProcessing()
-            qt.QApplication.restoreOverrideCursor()
-            self._extract.setWaiting(False)
-            qt.QMessageBox.critical(self, "Error", thread.errorString())
-            self.__extractionThread = None
-            return
-        try:
-            self.__extractionFinished(thread)
-        finally:
-            self.__plot.setProcessingLocation(None)
-            self.__plot.unsetProcessing()
-            qt.QApplication.restoreOverrideCursor()
-            self._extract.setWaiting(False)
-            self.__extractionThread = None
+            errorMessage = thread.errorString()
+        else:
+            try:
+                self.__extractionFinished(thread)
+            except Exception as e:
+                _logger.debug("Backtrace", exc_info=True)
+                errorMessage = str(e)
+
+        self.__plot.setProcessingLocation(None)
+        self.__plot.unsetProcessing()
+        qt.QApplication.restoreOverrideCursor()
+        self._extract.setWaiting(False)
+        if errorMessage is not None:
+            qt.QMessageBox.critical(self, "Error", errorMessage)
+        self.__extractionThread = None
 
     def __extractionFinished(self, thread):
         """

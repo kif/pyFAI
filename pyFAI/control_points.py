@@ -38,7 +38,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "06/03/2018"
+__date__ = "26/04/2019"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -496,8 +496,8 @@ class PointGroup(object):
         :param plot: reference to the matplotlib plot
         :param force_label: allows to enforce the label
         """
-        if points:
-            self.points = points
+        if points is not None:
+            self.points = [i for i in points]
         else:
             self.points = []
         if force_label:

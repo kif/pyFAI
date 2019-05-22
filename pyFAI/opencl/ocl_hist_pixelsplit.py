@@ -30,7 +30,7 @@
 
 __authors__ = ["Jérôme Kieffer", "Giannis Ashiotis"]
 __license__ = "MIT"
-__date__ = "04/10/2018"
+__date__ = "16/05/2019"
 __copyright__ = "2014, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -38,14 +38,12 @@ import gc
 import logging
 import threading
 import numpy
-from . import ocl, pyopencl, allocate_cl_buffers, release_cl_buffers
-from ..ext.splitBBoxLUT import HistoBBox1d
-from . import utils
-from ..utils import crc32
-if pyopencl:
+from . import ocl
+if ocl is not None:
+    from . import pyopencl, allocate_cl_buffers, release_cl_buffers
     mf = pyopencl.mem_flags
-else:
-    raise ImportError("pyopencl is not installed")
+    from . import concatenate_cl_kernel
+from ..utils import crc32
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +199,7 @@ class OCL_Hist_Pixelsplit(object):
         :param kernel_file: path tothe
         """
         kernel_file = kernel_file or "ocl_hist_pixelsplit.cl"
-        kernel_src = utils.concatenate_cl_kernel([kernel_file])
+        kernel_src = concatenate_cl_kernel([kernel_file])
 
         template_options = "-D BINS=%i  -D NIMAGE=%i -D WORKGROUP_SIZE=%i -D EPS=%f"
         compile_options = template_options % (self.bins, self.size, self.BLOCK_SIZE, numpy.finfo(numpy.float32).eps)

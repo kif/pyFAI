@@ -281,7 +281,8 @@ class Distortion(object):
                     mask = self.mask
                     if _distortion:
                         if use_common:
-                            self.lut = _distortion.calc_sparse(self.pos, self._shape_out, max_pixel_size=(self.delta1, self.delta2), format=self.method)
+                            self.lut = _distortion.calc_sparse(self.pos, self._shape_out, max_pixel_size=(self.delta1, self.delta2), format=self.method,
+                                                               global_offset=(self.offset1, self.offset2))
                         else:
                             if self.method == "lut":
                                 self.lut = _distortion.calc_LUT(self.pos, self._shape_out, self.bin_size, max_pixel_size=(self.delta1, self.delta2))

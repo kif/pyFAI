@@ -32,7 +32,7 @@ Distortion correction are correction are applied by look-up table (or CSR)
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "17/05/2019"
+__date__ = "27/05/2019"
 __copyright__ = "2011-2018, ESRF"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -656,7 +656,8 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
                 max_pixel_size=(8, 8),
                 cnumpy.int8_t[:, ::1] mask=None,
                 format="csr",
-                int bins_per_pixel=8):
+                int bins_per_pixel=8,
+                global_offset=(0, 0)):
     """Calculate the look-up table (or CSR) using OpenMP
 
     :param pos: 4D position array
@@ -664,6 +665,7 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
     :param max_pixel_size: (2-tuple of int) size of a buffer covering the largest pixel
     :param format: can be "CSR" or "LUT"
     :param bins_per_pixel: average splitting factor (number of pixels per bin)
+    :param global_offset: 2-tuple with the global offset 
     :return: look-up table in CSR/LUT format
     """
     cdef:
@@ -682,7 +684,7 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
         int counter, bin_number
         int idx, err_cnt = 0
         float A0, A1, B0, B1, C0, C1, D0, D1, pAB, pBC, pCD, pDA, cAB, cBC, cCD, cDA,
-        float area, value, foffset0, foffset1
+        float area, value, foffset0, foffset1, goffset0, goffset1
         cnumpy.int32_t[::1] indptr, indices, idx_bin, idx_pixel, pixel_count
         cnumpy.float32_t[::1] data, large_data
         cnumpy.float32_t[:, ::1] buffer
@@ -691,7 +693,8 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
     if do_mask:
         assert shape_in0 == mask.shape[0], "shape_in0 == mask.shape[0]"
         assert shape_in1 == mask.shape[1], "shape_in1 == mask.shape[1]"
-
+    goffset0 = global_offset[0]
+    goffset1 = global_offset[1]
     #  count the number of pixel falling into every single bin
     pixel_count = numpy.zeros(bins, dtype=numpy.int32)
     idx_pixel = numpy.zeros(large_size, dtype=numpy.int32)
@@ -711,24 +714,27 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
                 continue
             idx = i * shape_in1 + j  # pixel index
             buffer[:, :] = 0.0
-            A0 = pos[i, j, 0, 0]
-            A1 = pos[i, j, 0, 1]
-            B0 = pos[i, j, 1, 0]
-            B1 = pos[i, j, 1, 1]
-            C0 = pos[i, j, 2, 0]
-            C1 = pos[i, j, 2, 1]
-            D0 = pos[i, j, 3, 0]
-            D1 = pos[i, j, 3, 1]
-            foffset0 = _floor_min4(A0, B0, C0, D0)
-            foffset1 = _floor_min4(A1, B1, C1, D1)
+            A0 = pos[i, j, 0, 0] 
+            A1 = pos[i, j, 0, 1] 
+            B0 = pos[i, j, 1, 0] 
+            B1 = pos[i, j, 1, 1] 
+            C0 = pos[i, j, 2, 0] 
+            C1 = pos[i, j, 2, 1] 
+            D0 = pos[i, j, 3, 0] 
+            D1 = pos[i, j, 3, 1] 
+            foffset0 = _floor_min4(A0, B0, C0, D0) + goffset0
+            foffset1 = _floor_min4(A1, B1, C1, D1) + goffset1
             offset0 = <int> foffset0
             offset1 = <int> foffset1
-            box_size0 = (<int> _ceil_max4(A0, B0, C0, D0)) - offset0
-            box_size1 = (<int> _ceil_max4(A1, B1, C1, D1)) - offset1
+            box_size0 = (<int> (_ceil_max4(A0, B0, C0, D0) + goffset0)) - offset0
+            box_size1 = (<int> (_ceil_max4(A1, B1, C1, D1) + goffset1)) - offset1
             if (box_size0 > delta0) or (box_size1 > delta1):
                 # Increase size of the buffer
-                delta0 = offset0 if offset0 > delta0 else delta0
-                delta1 = offset1 if offset1 > delta1 else delta1
+                delta0 = max(delta0, box_size0)
+                delta1 = max(delta1, box_size1)
+                #Check for error in this:
+                #delta0 = offset0 if offset0 > delta0 else delta0
+                #delta1 = offset1 if offset1 > delta1 else delta1
                 with gil:
                     buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 

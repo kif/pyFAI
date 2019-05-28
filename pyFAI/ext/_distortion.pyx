@@ -32,7 +32,7 @@ Distortion correction are correction are applied by look-up table (or CSR)
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "27/05/2019"
+__date__ = "28/05/2019"
 __copyright__ = "2011-2018, ESRF"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -435,11 +435,13 @@ def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_p
                 offset1 = (<int> foffset1)
                 box_size0 = (<int> _ceil_max4(A0, B0, C0, D0)) - offset0
                 box_size1 = (<int> _ceil_max4(A1, B1, C1, D1)) - offset1
+
                 if (box_size0 > delta0) or (box_size1 > delta1):
                     # Increase size of the buffer
-                    delta0 = offset0 if offset0 > delta0 else delta0
-                    delta1 = offset1 if offset1 > delta1 else delta1
+                    delta0 = max(delta0, box_size0)
+                    delta1 = max(delta1, box_size1)
                     with gil:
+                        logger.warning("Increase buffer to (%ix%i)", delta0, delta1)
                         buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 
                 A0 -= foffset0
@@ -580,9 +582,10 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
 
                 if (box_size0 > delta0) or (box_size1 > delta1):
                     # Increase size of the buffer
-                    delta0 = offset0 if offset0 > delta0 else delta0
-                    delta1 = offset1 if offset1 > delta1 else delta1
+                    delta0 = max(delta0, box_size0)
+                    delta1 = max(delta1, box_size1)
                     with gil:
+                        logger.warning("Increase buffer to (%ix%i)", delta0, delta1)
                         buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 
                 A0 -= foffset0
@@ -693,6 +696,7 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
     if do_mask:
         assert shape_in0 == mask.shape[0], "shape_in0 == mask.shape[0]"
         assert shape_in1 == mask.shape[1], "shape_in1 == mask.shape[1]"
+        print(global_offset[0], global_offset[1])
     goffset0 = global_offset[0]
     goffset1 = global_offset[1]
     #  count the number of pixel falling into every single bin
@@ -714,28 +718,26 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
                 continue
             idx = i * shape_in1 + j  # pixel index
             buffer[:, :] = 0.0
-            A0 = pos[i, j, 0, 0] 
-            A1 = pos[i, j, 0, 1] 
-            B0 = pos[i, j, 1, 0] 
-            B1 = pos[i, j, 1, 1] 
-            C0 = pos[i, j, 2, 0] 
-            C1 = pos[i, j, 2, 1] 
-            D0 = pos[i, j, 3, 0] 
-            D1 = pos[i, j, 3, 1] 
-            foffset0 = _floor_min4(A0, B0, C0, D0) + goffset0
-            foffset1 = _floor_min4(A1, B1, C1, D1) + goffset1
+            A0 = pos[i, j, 0, 0] - goffset0
+            A1 = pos[i, j, 0, 1] - goffset1
+            B0 = pos[i, j, 1, 0] - goffset0
+            B1 = pos[i, j, 1, 1] - goffset1
+            C0 = pos[i, j, 2, 0] - goffset0
+            C1 = pos[i, j, 2, 1] - goffset1
+            D0 = pos[i, j, 3, 0] - goffset0
+            D1 = pos[i, j, 3, 1] - goffset1
+            foffset0 = _floor_min4(A0, B0, C0, D0)
+            foffset1 = _floor_min4(A1, B1, C1, D1)
             offset0 = <int> foffset0
             offset1 = <int> foffset1
-            box_size0 = (<int> (_ceil_max4(A0, B0, C0, D0) + goffset0)) - offset0
-            box_size1 = (<int> (_ceil_max4(A1, B1, C1, D1) + goffset1)) - offset1
+            box_size0 = (<int> (_ceil_max4(A0, B0, C0, D0))) - offset0
+            box_size1 = (<int> (_ceil_max4(A1, B1, C1, D1))) - offset1
             if (box_size0 > delta0) or (box_size1 > delta1):
                 # Increase size of the buffer
                 delta0 = max(delta0, box_size0)
                 delta1 = max(delta1, box_size1)
-                #Check for error in this:
-                #delta0 = offset0 if offset0 > delta0 else delta0
-                #delta1 = offset1 if offset1 > delta1 else delta1
                 with gil:
+                    logger.warning("Increase buffer to (%ix%i)", delta0, delta1)
                     buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 
             A0 = A0 - foffset0
@@ -926,9 +928,10 @@ def calc_sparse_v2(cnumpy.float32_t[:, :, :, ::1] pos not None,
             box_size1 = (<int> _ceil_max4(A1, B1, C1, D1)) - offset1
             if (box_size0 > delta0) or (box_size1 > delta1):
                 # Increase size of the buffer
-                delta0 = offset0 if offset0 > delta0 else delta0
-                delta1 = offset1 if offset1 > delta1 else delta1
+                delta0 = max(delta0, box_size0)
+                delta1 = max(delta1, box_size1)
                 with gil:
+                    logger.warning("Increase buffer to (%ix%i)", delta0, delta1)
                     buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 
             A0 = A0 - foffset0

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# cython: language_level=3
 # -*- coding: utf-8 -*-
 #
 #    Project: Fast Azimuthal integration
@@ -374,14 +374,18 @@ def calc_size(floating[:, :, :, ::1] pos not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_pixel_size,
-             cnumpy.int8_t[:, :] mask=None):
+def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, 
+             shape, bin_size, max_pixel_size,
+             cnumpy.int8_t[:, :] mask=None,
+             global_offset=(0.0, 0.0)):
     """
     :param pos: 4D position array
     :param shape: output shape
     :param bin_size: number of input element per output element (numpy array)
     :param max_pixel_size: (2-tuple of int) size of a buffer covering the largest pixel
-    :param mask: arry with bad pixels marked as True
+    :param mask: array with bad pixels marked as non zero values (True)
+    :param global_offset: 2-tuple with the global offset of the input image
+    
     :return: look-up table
     """
     cdef:
@@ -390,7 +394,7 @@ def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_p
         cnumpy.int32_t idx = 0
         int err_cnt = 0
         float A0, A1, B0, B1, C0, C1, D0, D1, pAB, pBC, pCD, pDA, cAB, cBC, cCD, cDA,
-        float area, value, foffset0, foffset1
+        float area, value, foffset0, foffset1, goffset0, goffset1
         lut_t[:, :, :] lut
         bint do_mask = mask is not None
         cnumpy.float32_t[:, ::1] buffer
@@ -400,6 +404,7 @@ def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_p
         assert shape0 == mask.shape[0], "mask shape dim0"
         assert shape1 == mask.shape[1], "mask shape dim1"
     delta0, delta1 = max_pixel_size
+    goffset0, goffset1 = global_offset
     cdef int[:, :] outMax = view.array(shape=(shape0, shape1), itemsize=sizeof(int), format="i")
     outMax[:, :] = 0
     buffer = numpy.empty((delta0, delta1), dtype=numpy.float32)
@@ -421,14 +426,15 @@ def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_p
                 # reset buffer
                 buffer[:, :] = 0.0
 
-                A0 = pos[i, j, 0, 0]
-                A1 = pos[i, j, 0, 1]
-                B0 = pos[i, j, 1, 0]
-                B1 = pos[i, j, 1, 1]
-                C0 = pos[i, j, 2, 0]
-                C1 = pos[i, j, 2, 1]
-                D0 = pos[i, j, 3, 0]
-                D1 = pos[i, j, 3, 1]
+                A0 = pos[i, j, 0, 0] - goffset0
+                A1 = pos[i, j, 0, 1] - goffset1
+                B0 = pos[i, j, 1, 0] - goffset0
+                B1 = pos[i, j, 1, 1] - goffset1
+                C0 = pos[i, j, 2, 0] - goffset0
+                C1 = pos[i, j, 2, 1] - goffset1
+                D0 = pos[i, j, 3, 0] - goffset0
+                D1 = pos[i, j, 3, 1] - goffset1
+
                 foffset0 = _floor_min4(A0, B0, C0, D0)
                 foffset1 = _floor_min4(A1, B1, C1, D1)
                 offset0 = (<int> foffset0)
@@ -519,14 +525,19 @@ def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_p
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pixel_size,
-             cnumpy.int8_t[:, ::1] mask=None):
+def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, 
+             shape, bin_size, max_pixel_size,
+             cnumpy.int8_t[:, ::1] mask=None,
+             global_offset=(0, 0)):
     """Calculate the Look-up table as CSR format
 
     :param pos: 4D position array
     :param shape: output shape
     :param bin_size: number of input element per output element (as numpy array)
     :param max_pixel_size: (2-tuple of int) size of a buffer covering the largest pixel
+    :param mask: array with bad pixels marked as non zero values (True)
+    :param global_offset: 2-tuple with the global offset of the input image
+    
     :return: look-up table in CSR format: 3-tuple of array"""
     cdef:
         int shape0, shape1, delta0, delta1, bins
@@ -537,7 +548,7 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
         int i, j, k, ms, ml, ns, nl, idx = 0, tmp_index, err_cnt = 0
         int lut_size, offset0, offset1, box_size0, box_size1
         float A0, A1, B0, B1, C0, C1, D0, D1, pAB, pBC, pCD, pDA, cAB, cBC, cCD, cDA,
-        float area, value, foffset0, foffset1
+        float area, value, foffset0, foffset1, goffset0, goffset1 
         cnumpy.int32_t[::1] indptr, indices
         cnumpy.float32_t[::1] data
         int[:, :] outMax = view.array(shape=(shape0, shape1), itemsize=sizeof(int), format="i")
@@ -546,7 +557,8 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
     if do_mask:
         assert shape0 == mask.shape[0], "mask shape dim0"
         assert shape1 == mask.shape[1], "mask shape dim1"
-
+    
+    goffset0, goffset1 = global_offset
     outMax[:, :] = 0
     indptr = numpy.concatenate(([numpy.int32(0)], bin_size.cumsum(dtype=numpy.int32)))
     lut_size = indptr[bins]
@@ -565,14 +577,14 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
                     continue
                 # reinit of buffer
                 buffer[:, :] = 0
-                A0 = pos[i, j, 0, 0]
-                A1 = pos[i, j, 0, 1]
-                B0 = pos[i, j, 1, 0]
-                B1 = pos[i, j, 1, 1]
-                C0 = pos[i, j, 2, 0]
-                C1 = pos[i, j, 2, 1]
-                D0 = pos[i, j, 3, 0]
-                D1 = pos[i, j, 3, 1]
+                A0 = pos[i, j, 0, 0] - goffset0
+                A1 = pos[i, j, 0, 1] - goffset1
+                B0 = pos[i, j, 1, 0] - goffset0
+                B1 = pos[i, j, 1, 1] - goffset1
+                C0 = pos[i, j, 2, 0] - goffset0
+                C1 = pos[i, j, 2, 1] - goffset1
+                D0 = pos[i, j, 3, 0] - goffset0
+                D1 = pos[i, j, 3, 1] - goffset1
                 foffset0 = _floor_min4(A0, B0, C0, D0)
                 foffset1 = _floor_min4(A1, B1, C1, D1)
                 offset0 = (<int> foffset0)
@@ -596,6 +608,7 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
                 C1 = C1 - foffset1
                 D0 = D0 - foffset0
                 D1 = D1 - foffset1
+
                 if B0 != A0:
                     pAB = (B1 - A1) / (B0 - A0)
                     cAB = A1 - pAB * A0
@@ -654,6 +667,7 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
 @cython.boundscheck(False)
 @cython.boundscheck(False)
 @cython.cdivision(True)
+@cython.initializedcheck(False)
 def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
                 shape,
                 max_pixel_size=(8, 8),
@@ -666,9 +680,10 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
     :param pos: 4D position array
     :param shape: output shape
     :param max_pixel_size: (2-tuple of int) size of a buffer covering the largest pixel
-    :param format: can be "CSR" or "LUT"
+    :param mask: array with bad pixels marked as non zero values (True)
+    :param format: can be "CSR" or "LUT" for the sparse matrix representation
     :param bins_per_pixel: average splitting factor (number of pixels per bin)
-    :param global_offset: 2-tuple with the global offset 
+    :param global_offset: 2-tuple with the global offset of the input image 
     :return: look-up table in CSR/LUT format
     """
     cdef:
@@ -697,8 +712,7 @@ def calc_sparse(cnumpy.float32_t[:, :, :, ::1] pos not None,
         assert shape_in0 == mask.shape[0], "shape_in0 == mask.shape[0]"
         assert shape_in1 == mask.shape[1], "shape_in1 == mask.shape[1]"
         print(global_offset[0], global_offset[1])
-    goffset0 = global_offset[0]
-    goffset1 = global_offset[1]
+    goffset0, goffset1 = global_offset
     #  count the number of pixel falling into every single bin
     pixel_count = numpy.zeros(bins, dtype=numpy.int32)
     idx_pixel = numpy.zeros(large_size, dtype=numpy.int32)

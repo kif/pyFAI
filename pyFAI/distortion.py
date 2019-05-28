@@ -30,7 +30,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/05/2019"
+__date__ = "28/05/2019"
 __status__ = "development"
 
 import logging
@@ -76,7 +76,7 @@ class Distortion(object):
     New version compatible both with CSR and LUT...
     """
     def __init__(self, detector="detector", shape=None, resize=False, empty=0,
-                 mask=None, method="CSR", device=None, workgroup=8):
+                 mask=None, method="csr", device=None, workgroup=8):
         """
         :param detector: detector instance or detector name
         :param shape: shape of the output image
@@ -117,7 +117,7 @@ class Distortion(object):
         self.integrator = None
         self.empty = empty  # "dummy" value for empty bins
         if not method:
-            self.method = "lut"
+            self.method = "csr"
         else:
             self.method = method.lower()
         self.device = device
@@ -281,13 +281,24 @@ class Distortion(object):
                     mask = self.mask
                     if _distortion:
                         if use_common:
-                            self.lut = _distortion.calc_sparse(self.pos, self._shape_out, max_pixel_size=(self.delta1, self.delta2), format=self.method,
+                            self.lut = _distortion.calc_sparse(self.pos,
+                                                               self._shape_out,
+                                                               max_pixel_size=(self.delta1, self.delta2),
+                                                               format=self.method,
                                                                global_offset=(self.offset1, self.offset2))
                         else:
                             if self.method == "lut":
-                                self.lut = _distortion.calc_LUT(self.pos, self._shape_out, self.bin_size, max_pixel_size=(self.delta1, self.delta2))
+                                self.lut = _distortion.calc_LUT(self.pos,
+                                                                self._shape_out,
+                                                                self.bin_size,
+                                                                max_pixel_size=(self.delta1, self.delta2),
+                                                                global_offset=(self.offset1, self.offset2))
                             else:
-                                self.lut = _distortion.calc_CSR(self.pos, self._shape_out, self.bin_size, max_pixel_size=(self.delta1, self.delta2))
+                                self.lut = _distortion.calc_CSR(self.pos,
+                                                                self._shape_out,
+                                                                self.bin_size,
+                                                                max_pixel_size=(self.delta1, self.delta2),
+                                                                global_offset=(self.offset1, self.offset2))
                     else:
                         lut = numpy.recarray(shape=(self._shape_out[0], self._shape_out[1], self.max_size), dtype=[("idx", numpy.uint32), ("coef", numpy.float32)])
                         lut[:, :, :].idx = 0

@@ -444,14 +444,14 @@ def calc_LUT(cnumpy.float32_t[:, :, :, ::1] pos not None, shape, bin_size, max_p
                         logger.warning("Increase buffer to (%ix%i)", delta0, delta1)
                         buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 
-                A0 -= foffset0
-                A1 -= foffset1
-                B0 -= foffset0
-                B1 -= foffset1
-                C0 -= foffset0
-                C1 -= foffset1
-                D0 -= foffset0
-                D1 -= foffset1
+                A0 = A0 - foffset0
+                A1 = A1 - foffset1
+                B0 = B0 - foffset0
+                B1 = B1 - foffset1
+                C0 = C0 - foffset0
+                C1 = C1 - foffset1
+                D0 = D0 - foffset0
+                D1 = D1 - foffset1
                 if B0 != A0:
                     pAB = (B1 - A1) / (B0 - A0)
                     cAB = A1 - pAB * A0
@@ -588,14 +588,14 @@ def calc_CSR(cnumpy.float32_t[:, :, :, :] pos not None, shape, bin_size, max_pix
                         logger.warning("Increase buffer to (%ix%i)", delta0, delta1)
                         buffer = numpy.zeros((delta0, delta1), dtype=numpy.float32)
 
-                A0 -= foffset0
-                A1 -= foffset1
-                B0 -= foffset0
-                B1 -= foffset1
-                C0 -= foffset0
-                C1 -= foffset1
-                D0 -= foffset0
-                D1 -= foffset1
+                A0 = A0 - foffset0
+                A1 = A1 - foffset1
+                B0 = B0 - foffset0
+                B1 = B1 - foffset1
+                C0 = C0 - foffset0
+                C1 = C1 - foffset1
+                D0 = D0 - foffset0
+                D1 = D1 - foffset1
                 if B0 != A0:
                     pAB = (B1 - A1) / (B0 - A0)
                     cAB = A1 - pAB * A0

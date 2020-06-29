@@ -4,7 +4,7 @@
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
 #
-#    Copyright (C) 2015-2018 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2015-2020 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -78,14 +78,11 @@ Here are the valid keys:
 - "method"
 """
 
-
-from __future__ import with_statement, print_function, division
-
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/01/2020"
+__date__ = "22/06/2020"
 __status__ = "development"
 
 import threading
@@ -93,6 +90,7 @@ import os.path
 import logging
 import json
 import numpy
+from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +103,14 @@ from . import units
 from .io import integration_config
 import pyFAI.io.image
 from .engines.preproc import preproc as preproc_numpy
+try:
+    import numexpr
+except ImportError as err:
+    logger.warning("Unable to import Cython version of preproc: %s", err)
+    USE_NUMEXPR = False
+else:
+    USE_NUMEXPR = True
+    
 try:
     from .ext.preproc import preproc
 except ImportError as err:
@@ -219,6 +225,7 @@ def _reduce_images(filenames, method="mean"):
 
 
 class Worker(object):
+
     def __init__(self, azimuthalIntegrator=None,
                  shapeIn=(2048, 2048), shapeOut=(360, 500),
                  unit="r_mm", dummy=None, delta_dummy=None):
@@ -412,13 +419,15 @@ class Worker(object):
     def set_dark_current_file(self, imagefile):
         self.ai.detector.set_darkcurrent(_reduce_images(imagefile))
         self.dark_current_image = imagefile
+
     setDarkcurrentFile = set_dark_current_file
-    
+
     def set_flat_field_file(self, imagefile):
         self.ai.detector.set_flatfield(_reduce_images(imagefile))
         self.flat_field_image = imagefile
+
     setFlatfieldFile = set_flat_field_file
-    
+
     def set_config(self, config, consume_keys=False):
         """
         Configure the working from the dictionary.
@@ -530,6 +539,7 @@ class Worker(object):
 
     def get_unit(self):
         return self._unit
+
     unit = property(get_unit, set_unit)
 
     def set_error_model(self, value):
@@ -539,10 +549,12 @@ class Worker(object):
             self.do_poisson = False
         else:
             raise RuntimeError("Unsupported error model '%s'" % value)
+
     def get_error_model(self):
         if self.do_poisson:
             return "poisson"
         return None
+
     error_model = property(get_error_model, set_error_model)
 
     def get_config(self):
@@ -550,7 +562,8 @@ class Worker(object):
 
         FIXME: The returned dictionary is not exhaustive.
         """
-        config = {"unit": str(self.unit)}
+        config = OrderedDict()
+        config["unit"] = str(self.unit)
         for key in ["dist", "poni1", "poni2", "rot1", "rot3", "rot2", "pixel1", "pixel2", "splineFile", "wavelength"]:
             try:
                 config[key] = self.ai.__getattribute__(key)
@@ -563,7 +576,7 @@ class Worker(object):
                 config[key] = self.__getattribute__(key)
             except:
                 pass
-        
+
         for key in ["azimuth_range", "radial_range"]:
             try:
                 value = self.__getattribute__(key)
@@ -571,11 +584,11 @@ class Worker(object):
                 pass
             else:
                 if value is not None:
-                    config["do_"+key] = True
-                    config[key+"_min"] = min(value)
-                    config[key+"_max"] = max(value)
+                    config["do_" + key] = True
+                    config[key + "_min"] = min(value)
+                    config[key + "_max"] = max(value)
                 else:
-                    config["do_"+key] = False
+                    config["do_" + key] = False
 
         return config
 
@@ -590,8 +603,9 @@ class Worker(object):
         else:
             config = json.loads(json_file)
         self.set_config(config)
+
     setJsonConfig = set_json_config
-    
+
     def save_config(self, filename=None):
         """Save the configuration as a JSON file"""
         if not filename:
@@ -616,9 +630,11 @@ class Worker(object):
     def get_normalization_factor(self):
         with self._sem:
             return self._normalization_factor
+
     def set_normalization_factor(self, value):
         with self._sem:
             self._normalization_factor = value
+
     normalization_factor = property(get_normalization_factor, set_normalization_factor)
 
     def set_method(self, method="csr"):
@@ -647,6 +663,7 @@ class PixelwiseWorker(object):
     """
     Simple worker doing dark, flat, solid angle and polarization correction
     """
+
     def __init__(self, dark=None, flat=None, solidangle=None, polarization=None,
                  mask=None, dummy=None, delta_dummy=None, device=None,
                  empty=None, dtype="float32"):
@@ -736,6 +753,7 @@ class DistortionWorker(object):
     """
     Simple worker doing dark, flat, solid angle and polarization correction
     """
+
     def __init__(self, detector=None, dark=None, flat=None, solidangle=None, polarization=None,
                  mask=None, dummy=None, delta_dummy=None, device=None):
         """Constructor of the worker
@@ -776,11 +794,17 @@ class DistortionWorker(object):
         self.delta_dummy = delta_dummy
         if device is not None:
             logger.warning("GPU is not yet implemented")
+            #Some explainations: the pre-processing and the distortion corrections should both be performed on the GPU.
+            #It kind of works when no variance propagation is involved but not whenn propagating errors.
 
         if detector is None:
             self.distortion = None
         else:
-            self.distortion = Distortion(detector, method="LUT", device=device,
+            if (detector.uniform_pixel and detector.IS_FLAT):
+                #No distortion correction are actually needed !
+                self.distortion = None
+            else:
+                self.distortion = Distortion(detector, method="LUT", device=device,
                                          mask=self.mask, empty=self.dummy or 0)
 
     def process(self, data, variance=None,
@@ -790,8 +814,10 @@ class DistortionWorker(object):
         :param data: input data
         :param variance: the variance associated to the data
         :param normalization: normalization factor
-        :return: processed data
+        :return: processed data as either an array (data) or two (data, error)
         """
+        #TODO as part of issue #1360: expose a correct_ng which would perform simultaneously the preprocessing and the distortion correction
+        # This could be implemented on GPU as the code already exists. 
         proc_data = preproc(data,
                             variance=variance,
                             dark=self.dark,
@@ -808,6 +834,23 @@ class DistortionWorker(object):
         if self.distortion is not None:
             return self.distortion.correct(proc_data, self.dummy, self.delta_dummy)
         else:
-            return data
+            if variance is not None:
+                pp_signal = proc_data[...,0]
+                pp_variance = proc_data[...,1]
+                pp_normalisation = proc_data[...,2]
+                if numexpr is None:
+                    # Cheap, muthithreaded way:
+                    res_signal = numexpr.evaluate("where(pp_normalisation==0.0, 0.0, pp_signal / pp_normalisation)")
+                    res_error = numexpr.evaluate("where(pp_normalisation==0.0, 0.0, sqrt(pp_variance) / abs(pp_normalisation))")
+                else:
+                    # Take the numpy road:
+                    res_signal = numpy.zeros_like(pp_signal)
+                    res_error = numpy.zeros_like(pp_signal)
+                    msk = numpy.where(pp_normalisation!=0)
+                    res_signal[msk] = pp_signal[msk] / pp_normalisation[msk]
+                    res_error[msk] = numpy.sqrt(pp_variance[msk]) / abs(pp_normalisation[msk])
+                return res_signal, res_error
+            else:
+                return proc_data
 
     __call__ = process

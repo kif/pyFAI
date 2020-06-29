@@ -3,7 +3,8 @@
 --find-links http://www.edna-site.org/pub/wheelhouse
 
 wheel
-numpy
+numpy <1.19 ; python_version <= '3.5'
+numpy; python_version>= '3.6'
 cython
 pillow
 lxml
@@ -14,6 +15,8 @@ scipy
 matplotlib
 mako
 pybind11
+pytools <2020.3 ; python_version <= '3.5'
+pytools; python_version>= '3.6'
 pyopencl
 numexpr
 silx

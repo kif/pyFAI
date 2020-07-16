@@ -37,7 +37,7 @@ reverse implementation based on a sparse matrix multiplication
 
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.kieffer@esrf.fr"
-__date__ = "26/06/2020"
+__date__ = "13/07/2020"
 __status__ = "stable"
 __license__ = "MIT"
 
@@ -77,8 +77,7 @@ class HistoBBox1d(CsrIntegrator):
                  mask_checksum=None,
                  allow_pos0_neg=False,
                  unit="undefined",
-                 empty=0.0
-                 ):
+                 empty=0.0):
         """
         :param pos0: 1D array with pos0: tth or q_vect or r ...
         :param delta_pos0: 1D array with delta pos0: max center-corner distance
@@ -90,8 +89,7 @@ class HistoBBox1d(CsrIntegrator):
         :param mask: array (of int8) with masked pixels with 1 (0=not masked)
         :param allow_pos0_neg: enforce the q<0 is usually not possible
         :param unit: can be 2th_deg or r_nm^-1 ...
-        :param empty: value to be assigned to bins without contribution from any pixel
-
+        :param empty: value for bins without contributing pixels
         """
         self.size = pos0.size
         if "size" not in dir(delta_pos0) or delta_pos0.size != self.size:
@@ -294,8 +292,8 @@ class HistoBBox1d(CsrIntegrator):
 
                 fbin0_min = get_bin_number(min0, pos0_min, delta)
                 fbin0_max = get_bin_number(max0, pos0_min, delta)
-                bin0_min = < int > fbin0_min
-                bin0_max = < int > fbin0_max
+                bin0_min = <int> fbin0_min
+                bin0_max = <int> fbin0_max
 
                 if (bin0_max < 0) or (bin0_min >= bins):
                     continue
@@ -305,7 +303,7 @@ class HistoBBox1d(CsrIntegrator):
                     bin0_min = 0
 
                 if bin0_min == bin0_max:
-                    #  All pixel is within a single bin
+                    # All pixel is within a single bin
                     outmax[bin0_min] += 1
 
                 else:  # We have pixel splitting.
@@ -352,8 +350,8 @@ class HistoBBox1d(CsrIntegrator):
 
                 fbin0_min = get_bin_number(min0, pos0_min, delta)
                 fbin0_max = get_bin_number(max0, pos0_min, delta)
-                bin0_min = < int > fbin0_min
-                bin0_max = < int > fbin0_max
+                bin0_min = <int> fbin0_min
+                bin0_max = <int> fbin0_max
 
                 if (bin0_max < 0) or (bin0_min >= bins):
                     continue
@@ -492,13 +490,18 @@ class HistoBBox1d(CsrIntegrator):
         return self.bin_centers
 
 
-
 ################################################################################
 # Bidimensionnal regrouping
 ################################################################################
 
 
 class HistoBBox2d(object):
+    """
+    2D histogramming with pixel splitting based on a look-up table
+
+    The initialization of the class can take quite a while (operation are not parallelized)
+    but each integrate is parallelized and quite efficient.
+    """
     @cython.boundscheck(False)
     def __init__(self,
                  pos0,
@@ -1109,9 +1112,9 @@ class HistoBBox2d(object):
             acc_t acc_data = 0.0, acc_count = 0.0, epsilon = 1e-10, coef = 0.0
             data_t data = 0.0, cdummy = 0.0, cddummy = 0.0
             bint do_dummy = False, do_dark = False, do_flat = False, do_polarization = False, do_solidAngle = False
-            acc_t[::1] sum_data = numpy.zeros(bins, dtype=acc_d)
-            acc_t[::1] sum_count = numpy.zeros(bins, dtype=acc_d)
-            data_t[::1] merged = numpy.zeros(bins, dtype=data_d)
+            acc_t[::1] sum_data = numpy.empty(bins, dtype=acc_d)
+            acc_t[::1] sum_count = numpy.empty(bins, dtype=acc_d)
+            data_t[::1] merged = numpy.empty(bins, dtype=data_d)
             data_t[::1] ccoef = self.data, 
             data_t[::1] cdata, tdata, cflat, cdark, csolidAngle, cpolarization
             cnumpy.int32_t[::1] indices = self.indices, indptr = self.indptr
@@ -1148,7 +1151,7 @@ class HistoBBox2d(object):
 
         if (do_dark + do_flat + do_polarization + do_solidAngle):
             tdata = numpy.ascontiguousarray(weights.ravel(), dtype=data_d)
-            cdata = numpy.zeros(size, dtype=data_d)
+            cdata = numpy.empty(size, dtype=data_d)
             if do_dummy:
                 for i in prange(size, nogil=True, schedule="static"):
                     data = tdata[i]
@@ -1162,10 +1165,10 @@ class HistoBBox2d(object):
                             data = data / cpolarization[i]
                         if do_solidAngle:
                             data = data / csolidAngle[i]
-                        cdata[i] += data
+                        cdata[i] = data
                     else:
                         # set all dummy_like values to cdummy. simplifies further processing
-                        cdata[i] += cdummy
+                        cdata[i] = cdummy
             else:
                 for i in prange(size, nogil=True, schedule="static"):
                     data = tdata[i]
@@ -1177,17 +1180,17 @@ class HistoBBox2d(object):
                         data = data / cpolarization[i]
                     if do_solidAngle:
                         data = data / csolidAngle[i]
-                    cdata[i] += data
+                    cdata[i] = data
         else:
             if do_dummy:
                 tdata = numpy.ascontiguousarray(weights.ravel(), dtype=data_d)
-                cdata = numpy.zeros(size, dtype=data_d)
+                cdata = numpy.empty(size, dtype=data_d)
                 for i in prange(size, nogil=True, schedule="static"):
                     data = tdata[i]
                     if ((cddummy != 0) and (fabs(data - cdummy) > cddummy)) or ((cddummy == 0) and (data != cdummy)):
-                        cdata[i] += data
+                        cdata[i] = data
                     else:
-                        cdata[i] += cdummy
+                        cdata[i] = cdummy
             else:
                 cdata = numpy.ascontiguousarray(weights.ravel(), dtype=data_d)
 
@@ -1204,12 +1207,12 @@ class HistoBBox2d(object):
                     continue
                 acc_data = acc_data + (coef ** coef_power) * data
                 acc_count = acc_count + coef
-            sum_data[i] += acc_data
-            sum_count[i] += acc_count
+            sum_data[i] = acc_data
+            sum_count[i] = acc_count
             if acc_count > epsilon:
-                merged[i] += acc_data / acc_count / normalization_factor
+                merged[i] = acc_data / acc_count / normalization_factor
             else:
-                merged[i] += cdummy
+                merged[i] = cdummy
         return (numpy.asarray(merged).reshape(self.bins).T, 
                 self.bin_centers0, 
                 self.bin_centers1, 

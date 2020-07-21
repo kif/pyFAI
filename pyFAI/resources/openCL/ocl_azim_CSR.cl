@@ -3,11 +3,11 @@
  *            Kernel with full pixel-split using a CSR sparse matrix
  *
  *
- *   Copyright (C) 2012-2018 European Synchrotron Radiation Facility
+ *   Copyright (C) 2012-2020 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
- *   Last revision: 02/10/2018
+ *   Last revision: 07/07/2020
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -540,7 +540,7 @@ csr_integrate_single(  const   global  float   *weights,
                                global  float   *merged)
 {
     // each workgroup of size=warp is assinged to 1 bin
-    int bin_num = get_group_id(0);
+    int bin_num = get_global_id(0);
     // we use _K suffix to highlight it is float2 used for Kahan summation
     float2 sum_data_K = (float2)(0.0f, 0.0f);
     float2 sum_count_K = (float2)(0.0f, 0.0f);
@@ -575,16 +575,14 @@ csr_integrate_single(  const   global  float   *weights,
  * \brief Performs 1d azimuthal integration based on CSR sparse matrix multiplication on preprocessed data
  *  Unlike the former kernel, it works with a workgroup size of ONE (tailor made form MacOS bug)
  *
- * @param weights     Float pointer to global memory storing the input image.
+ * @param weights     Float pointer to global memory storing the input image after preprocessing. Contains (signal, variance, normalisation, count) as float4.
  * @param coefs       Float pointer to global memory holding the coeficient part of the LUT
  * @param indices     Integer pointer to global memory holding the corresponding index of the coeficient
- * @param indptr     Integer pointer to global memory holding the pointers to the coefs and indices for the CSR matrix
- * @param do_dummy    Bool/int: shall the dummy pixel be checked. Dummy pixel are pixels marked as bad and ignored
- * @param dummy       Float: value for bad pixels
- * @param coef_power  Set to 2 for variance propagation, leave to 1 for mean calculation
- * @param sum_data    Float pointer to the output 1D array with the weighted histogram
- * @param sum_count   Float pointer to the output 1D array with the unweighted histogram
- * @param merged      Float pointer to the output 1D array with the diffractogram
+ * @param indptr      Integer pointer to global memory holding the pointers to the coefs and indices for the CSR matrix
+ * @param empty       Float: value for bad pixels, NaN is a good guess
+ * @param summed      Float pointer to the output with all 4 histograms in Kahan representation
+ * @param averint     Float pointer to the output 1D array with the averaged signal
+ * @param stderr      Float pointer to the output 1D array with the propagated error
  *
  */
 kernel void
@@ -592,6 +590,7 @@ csr_integrate4(  const   global  float4  *weights,
                  const   global  float   *coefs,
                  const   global  int     *indices,
                  const   global  int     *indptr,
+                 const           float    empty,
                          global  float8  *summed,
                          global  float   *averint,
                          global  float   *stderr)
@@ -606,8 +605,8 @@ csr_integrate4(  const   global  float4  *weights,
             stderr[bin_num] = sqrt(result.s2) / result.s4;
         }
         else {
-            averint[bin_num] = NAN;
-            stderr[bin_num] = NAN;
+            averint[bin_num] = empty;
+            stderr[bin_num] = empty;
         } //end else
     } // end if thread0 
 };//end kernel
@@ -615,18 +614,16 @@ csr_integrate4(  const   global  float4  *weights,
 
 /**
  * \brief Performs 1d azimuthal integration based on CSR sparse matrix multiplication on preprocessed data
- *  Unlike the former kernel, it works with a workgroup size of ONE (tailor made form MacOS bug)
+ *  Unlike the former kernel, it works with a any workgroup size, especialy  ONE (tailor made form MacOS bug)
  *
  * @param weights     Float pointer to global memory storing the input image.
  * @param coefs       Float pointer to global memory holding the coeficient part of the LUT
  * @param indices     Integer pointer to global memory holding the corresponding index of the coeficient
- * @param indptr     Integer pointer to global memory holding the pointers to the coefs and indices for the CSR matrix
- * @param do_dummy    Bool/int: shall the dummy pixel be checked. Dummy pixel are pixels marked as bad and ignored
- * @param dummy       Float: value for bad pixels
- * @param coef_power  Set to 2 for variance propagation, leave to 1 for mean calculation
- * @param sum_data    Float pointer to the output 1D array with the weighted histogram
- * @param sum_count   Float pointer to the output 1D array with the unweighted histogram
- * @param merged      Float pointer to the output 1D array with the diffractogram
+ * @param indptr      Integer pointer to global memory holding the pointers to the coefs and indices for the CSR matrix
+ * @param empty       Float: value for bad pixels, NaN is a good guess
+ * @param summed      Float pointer to the output with all 4 histograms in Kahan representation
+ * @param averint     Float pointer to the output 1D array with the averaged signal
+ * @param stderr      Float pointer to the output 1D array with the propagated error
  *
  */
 kernel void
@@ -634,18 +631,18 @@ csr_integrate4_single(  const   global  float4  *weights,
                         const   global  float   *coefs,
                         const   global  int     *indices,
                         const   global  int     *indptr,
+                        const           float    empty,
                                 global  float8  *summed,
                                 global  float   *averint,
                                 global  float   *stderr)
 {
     // each workgroup of size=warp is assinged to 1 bin
-    int bin_num = get_group_id(0);
+    int bin_num = get_global_id(0);
     // we use _K suffix to highlight it is float2 used for Kahan summation
     float2 sum_signal_K = (float2)(0.0f, 0.0f);
     float2 sum_variance_K = (float2)(0.0f, 0.0f);
     float2 sum_norm_K = (float2)(0.0f, 0.0f);
     float2 sum_count_K = (float2)(0.0f, 0.0f);
-    const float epsilon = 1e-10f;
 
     for (int j=indptr[bin_num];j<indptr[bin_num+1];j++) {
         float coef = coefs[j];
@@ -673,8 +670,8 @@ csr_integrate4_single(  const   global  float4  *weights,
         stderr[bin_num] = sqrt(sum_variance_K.s0) / sum_norm_K.s0;
     }
     else {
-        averint[bin_num] = NAN;
-        stderr[bin_num] = NAN;
+        averint[bin_num] = empty;
+        stderr[bin_num] = empty;
     }
 }//end kernel
 

@@ -28,7 +28,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "22/06/2020"
+__date__ = "20/07/2020"
 __status__ = "development"
 
 import logging
@@ -67,6 +67,19 @@ else:
         linalg = None
 
 
+def resize_image_2D_numpy(image, shape_in):
+    "numpy implementation of resize_image_2D"
+    new_img = numpy.zeros(shape_in, dtype=image.dtype)
+    common_shape = [min(i, j) for i, j in zip(image.shape, shape_in)]
+    new_img[:common_shape[0], :common_shape[1]] = image[:common_shape[0], :common_shape[1]]
+    return new_img
+
+if _distortion is None:
+    resize_image_2D = resize_image_2D_numpy
+else:
+    from .ext._distortion import resize_image_2D
+
+
 class Distortion(object):
     """
     This class applies a distortion correction on an image.
@@ -74,7 +87,7 @@ class Distortion(object):
     New version compatible both with CSR and LUT...
     """
     def __init__(self, detector="detector", shape=None, resize=False, empty=0,
-                 mask=None, method="CSR", device=None, workgroup=8):
+                 mask=None, method="CSR", device=None, workgroup=32):
         """
         :param detector: detector instance or detector name
         :param shape: shape of the output image
@@ -90,10 +103,12 @@ class Distortion(object):
         else:  # we assume it is a Detector instance
             self.detector = detector
         self.shape_in = self.detector.shape
-        if mask is not None:
-            self.mask = numpy.ascontiguousarray(mask, numpy.int8)
-        else:
+        if mask is None:
             self.mask = numpy.ascontiguousarray(self.detector.mask, numpy.int8)
+        elif mask is False:
+            self.mask = numpy.zeros(self.detector.mask.shape, numpy.int8)
+        else:
+            self.mask = numpy.ascontiguousarray(mask, numpy.int8)
         self.resize = resize
         if shape is not None:
             self._shape_out = tuple([int(i) for i in shape])
@@ -112,9 +127,14 @@ class Distortion(object):
         else:
             self.method = method.lower()
         if (self.detector.uniform_pixel and self.detector.IS_FLAT):
-            csr = identity(numpy.prod(self.detector.shape), 
-                           dtype=numpy.float32, 
-                           format="csr")
+            sparse = identity(numpy.prod(self.detector.shape),
+                              dtype=numpy.float32,
+                              format="coo")
+            if self.detector.mask is not None:
+                masked = numpy.where(self.detector.mask.ravel())
+                sparse.data[masked] = 0.0
+                sparse.eliminate_zeros()
+            csr = sparse.tocsr()
             if self.method == "lut":
                 self.lut = sparse_utils.CSR_to_LUT(csr.data, csr.indices, csr.indptr)
             else:
@@ -128,7 +148,7 @@ class Distortion(object):
         self.empty = empty  # "dummy" value for empty bins
         self.device = device
         if not workgroup:
-            self.workgroup = 8
+            self.workgroup = 1
         else:
             self.workgroup = int(workgroup)
 
@@ -178,6 +198,7 @@ class Distortion(object):
         :return: pixel corner positions (in pixel units) on the regular grid
         :rtype: ndarray of shape (nrow, ncol, 4, 2)
         """
+        logger.debug("in Distortion.calc_pos")
         if self.delta1 is None:
             with self._sem:
                 if self.delta1 is None:
@@ -217,11 +238,12 @@ class Distortion(object):
         [-17.48634 : 1027.0543, -22.768829 : 2028.3689]
         We chose to discard pixels falling outside the [0:1025,0:2048] range with a lose of intensity
         """
-        if self.pos is None:
-            pos = self.calc_pos()
-        else:
-            pos = self.pos
+        logger.debug("in Distortion.calc_size")
         if self.max_size is None:
+            if self.pos is None:
+                pos = self.calc_pos()
+            else:
+                pos = self.pos
             with self._sem:
                 if self.max_size is None:
                     if _distortion and use_cython:
@@ -244,8 +266,7 @@ class Distortion(object):
     def calc_init(self):
         """Initialize all arrays
         """
-        self.calc_pos()
-        self.calc_size()
+        logger.debug("in Distortion.calc_init")
         self.calc_LUT()
         if ocl and self.device is not None:
             if "lower" in dir(self.device):
@@ -259,6 +280,7 @@ class Distortion(object):
                                                                       self._shape_out[0] * self._shape_out[1],
                                                                       devicetype=self.device,
                                                                       block_size=self.workgroup)
+                    self.integrator.workgroup_size["csr_integrate4"] = 1,
             else:
                 if self.method == "lut":
                     self.integrator = ocl_azim_lut.OCL_LUT_Integrator(self.lut,
@@ -270,18 +292,21 @@ class Distortion(object):
                                                                       self._shape_out[0] * self._shape_out[1],
                                                                       platformid=self.device[0], deviceid=self.device[1],
                                                                       block_size=self.workgroup)
+                    self.integrator.workgroup_size["csr_integrate4"] = 1,
 
     def calc_LUT(self, use_common=True):
         """Calculate the Look-up table
 
         :return: look up table either in CSR or LUT format depending on serl.method
         """
-        if self.pos is None:
-            self.calc_pos()
+        logger.debug("in Distortion.calc_LUT")
 
-        if self.max_size is None and not use_common:
-            self.calc_size()
         if self.lut is None:
+            if self.pos is None:
+                self.calc_pos()
+    
+            if self.max_size is None and not use_common:
+                self.calc_size()
             with self._sem:
                 if self.lut is None:
                     mask = self.mask
@@ -348,14 +373,7 @@ class Distortion(object):
         :return: corrected 2D image
         """
         if image.ndim == 2:
-            if _distortion:
-                image = _distortion.resize_image_2D(image, self.shape_in)
-            else:
-                logger.error("The image shape (%s) is not the same as the detector (%s). Adapting shape ...", image.shape, self.shape_in)
-                new_img = numpy.zeros(self.shape_in, dtype=image.dtype)
-                common_shape = [min(i, j) for i, j in zip(image.shape, self.shape_in)]
-                new_img[:common_shape[0], :common_shape[1]] = image[:common_shape[0], :common_shape[1]]
-                image = new_img
+            image = resize_image_2D(image, self.shape_in)
         else:  # assume 2d+nchanel
             if _distortion:
                 image = _distortion.resize_image_3D(image, self.shape_in)
@@ -412,6 +430,101 @@ class Distortion(object):
             logger.error("Requested in_shape=%s out_shape=%s and ", self.shape_in, self.shape_out)
             raise
         return out
+
+    def correct_ng(self, image,
+                   variance=None,
+                   dark=None,
+                   flat=None,
+                   solidangle=None,
+                   polarization=None,
+                   dummy=None,
+                   delta_dummy=None,
+                   normalization_factor=1.0):
+        """
+        Correct an image based on the look-up table calculated ...
+        Like the integrate_ng it provides
+        * Dark current correction
+        * Normalisation with flatfield (or solid angle, polarization, absorption, ...)
+        * Error propagation
+
+        :param image: 2D-array with the image
+        :param variance: 2D-array with the associated image
+        :param dark: array with dark-current values
+        :param flat: array with values for a flat image
+        :param solidangle: solid-angle array
+        :param polarization: numpy array with 2D polarization corrections
+        :param dummy: value suggested for bad pixels
+        :param delta_dummy: precision of the dummy value
+        :param normalization_factor: multiply all normalization with this value
+        :return: corrected 2D image
+        """
+        assert image.ndim == 2
+        if variance is not None:
+            assert variance.shape == image.shape
+
+        if image.shape != self.shape_in:
+            logger.warning("The image shape %s is not the same as the detector %s", image.shape, self.shape_in)
+            image = resize_image_2D(image, self.shape_in)
+            if variance is not None:
+                variance = resize_image_2D(variance, self.shape_in)
+            if dark is not None:
+                dark = resize_image_2D(dark, self.shape_in)
+
+        if self.device:
+            if self.integrator is None:
+                self.calc_init()
+            res = self.integrator.integrate_ng(image,
+                                               variance=variance,
+                                               flat=flat,
+                                               dark=dark,
+                                               solidangle=solidangle,
+                                               polarization=polarization,
+                                               dummy=dummy,
+                                               delta_dummy=delta_dummy,
+                                               normalization_factor=normalization_factor,
+                                               out_merged=False
+                                               )
+            if variance is None:
+                if image.ndim == 2:
+                    out = res.intensity.reshape(self._shape_out)
+                else:
+                    out = res.intensity
+            else:
+                if image.ndim == 2:
+                    out = (res.intensity.reshape(self._shape_out), res.error.reshape(self._shape_out))
+                else:
+                    out = (res.intensity, res.error)
+        else:
+            if self.lut is None:
+                self.calc_LUT()
+            if _distortion is not None:
+                out = _distortion.correct(image, self.shape_in, self._shape_out, self.lut,
+                                          dummy=dummy or self.empty, delta_dummy=delta_dummy)
+            else:
+                if self.method == "lut":
+                    big = image.ravel().take(self.lut.idx) * self.lut.coef
+                    out = big.sum(axis=-1)
+                elif self.method == "csr":
+                    big = self.lut[0] * image.ravel().take(self.lut[1])
+                    indptr = self.lut[2]
+                    out = numpy.zeros(indptr.size - 1)
+                    for i in range(indptr.size - 1):
+                        out[i] = big[indptr[i]:indptr[i + 1]].sum()
+            try:
+                if image.ndim == 2:
+                    out.shape = self._shape_out
+                else:
+                    for ds in out:
+                        if ds.ndim == 2:
+                            ds.shape = self._shape_out
+                        else:
+                            ds.shape = self._shape_out + ds.shape[2:]
+
+            except ValueError as _err:
+                logger.error("Requested in_shape=%s out_shape=%s and ", self.shape_in, self.shape_out)
+                raise
+        return out
+
 
     def uncorrect(self, image, use_cython=False):
         """

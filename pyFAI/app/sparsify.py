@@ -42,7 +42,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "28/01/2021"
+__date__ = "26/02/2021"
 __status__ = "status"
 
 import os
@@ -107,6 +107,9 @@ def parse():
                         help="show information for each frame")
     parser.add_argument("--debug", action='store_true', dest="debug", default=False,
                         help="show debug information")
+    parser.add_argument("--profile", action='store_true', dest="profile", default=False,
+                        help="show profiling information")
+
     group = parser.add_argument_group("main arguments")
 #     group.add_argument("-l", "--list", action="store_true", dest="list", default=None,
 #                        help="show the list of available formats and exit")
@@ -250,7 +253,8 @@ def process(options):
                         bin_centers=integrator.bin_centers,
                         radius=ai._cached_array["r_center"],
                         mask=mask,
-                        ctx=ctx)
+                        ctx=ctx,
+                        profile=options.profile)
 
     logger.debug("Start sparsification")
     frames = []
@@ -288,6 +292,25 @@ def process(options):
                 ai=ai,
                 source=options.images if options.save_source else None,
                 extra=parameters)
+
+    if options.profile:
+        stats = OrderedDict()
+        t = 0.0
+        for e in pf.events:
+            if "__len__" in dir(e) and len(e) >= 2:
+                et = 1e-6 * (e[1].profile.end - e[1].profile.start)
+                name = e[0]
+                if name in stats:
+                    stats[name].append(et)
+                else:
+                    stats[name] = [et]
+                t += et
+        print(f"Total execution time: {t:.3f}ms")
+        print("Kernel name: count, timimgs (ms)\t min \t median \t max \t mean \t std")
+        for k, v in stats.items():
+            n = numpy.array(v)
+            print(f"{k:20s}: {len(v)} \t  {n.min():.3f} \t {numpy.median(n):.3f} \t {n.max():.3f} \t {n.mean():.3f} \t {n.std():.3f}")
+
     return EXIT_SUCCESS
 
 

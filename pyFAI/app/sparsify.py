@@ -306,7 +306,7 @@ def process(options):
                     stats[name] = [et]
                 t += et
         print("Kernel execution time in miliseconds")
-        print("{'Kernel name':>50} (count):      min   median      max     mean      std (ms)")
+        print(f"{'Kernel name':>50} (count):      min   median      max     mean      std (ms)")
         for k, v in stats.items():
             n = numpy.array(v)
             print(f"{k:>50} ({len(v):5}): {n.min():8.3f} {numpy.median(n):8.3f} {n.max():8.3f} {n.mean():8.3f} {n.std():.3f}")

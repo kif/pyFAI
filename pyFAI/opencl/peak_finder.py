@@ -29,7 +29,7 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "20/01/2021"
+__date__ = "26/02/2021"
 __copyright__ = "2014-2020, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -413,7 +413,7 @@ class OCL_PeakFinder(OCL_CSR_Integrator):
             ev2 = pyopencl.enqueue_copy(self.queue, signal, self.cl_mem["peak_intensity"])
 
             if self.profile:
-                self.events += [EventDescription("copy D->D + cast %s intenity" % dtype.name, ev0),
+                self.events += [EventDescription("copy intensity + cast %s" % dtype.name, ev0),
                                 EventDescription("copy D->H peak_position", ev1),
                                 EventDescription("copy D->H peak_intensty", ev2)]
         return indexes, signal

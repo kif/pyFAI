@@ -305,12 +305,12 @@ def process(options):
                 else:
                     stats[name] = [et]
                 t += et
-        print(f"Total execution time: {t:.3f}ms")
-        print("Kernel name: count, timimgs (ms)\t min \t median \t max \t mean \t std")
+        print("Kernel execution time in miliseconds")
+        print("{'Kernel name':>50} (count):      min   median      max     mean      std (ms)")
         for k, v in stats.items():
             n = numpy.array(v)
-            print(f"{k:20s}: {len(v)} \t  {n.min():.3f} \t {numpy.median(n):.3f} \t {n.max():.3f} \t {n.mean():.3f} \t {n.std():.3f}")
-
+            print(f"{k:>50} ({len(v):5}): {n.min():8.3f} {numpy.median(n):8.3f} {n.max():8.3f} {n.mean():8.3f} {n.std():.3f}")
+        print(f"Total execution time: {t:.3f}ms")
     return EXIT_SUCCESS
 
 

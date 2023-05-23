@@ -5,6 +5,10 @@ Uploaders: Jerome Kieffer <jerome.kieffer@esrf.fr>,
 Section: science
 Priority: extra
 Build-Depends: cython3 (>=0.29.31),
+<<<<<<< HEAD
+=======
+               pybuild-plugin-pyproject,
+>>>>>>> main
                python3-mesonpy,
                pkg-config,
                debhelper,
@@ -23,7 +27,10 @@ Build-Depends: cython3 (>=0.29.31),
                python3-nbconvert,
                python3-nbsphinx,
                python3-sphinx-rtd-theme,
+<<<<<<< HEAD
                pybuild-plugin-pyproject,
+=======
+>>>>>>> main
                python-dev-is-python3,
                help2man,
                devscripts
@@ -32,6 +39,10 @@ Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/pyfai.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pyfai.git
 Homepage: http://www.silx.org/#pyFAI
 X-Python3-Version: >= 3.7
+<<<<<<< HEAD
+=======
+TestSuite: autopkgtest-pkg-pybuild
+>>>>>>> main
 
 Package: pyfai
 Architecture: all
@@ -66,8 +77,13 @@ Depends: ${misc:Depends},
          python3-fabio (>= 0.5),
          python3-pil,
          python3-matplotlib,
+<<<<<<< HEAD
          python3-scipy (>=1.1),
          python3-silx (>=0.10)
+=======
+         python3-scipy,
+         python3-silx (>=1.1)
+>>>>>>> main
 Recommends: python3-pyopencl,
             python3-pyqt5|python3-pyside2.qtgui,
             python3-h5py

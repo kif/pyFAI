@@ -3,7 +3,11 @@
 export DH_VERBOSE=1
 export PYBUILD_NAME=pyfai
 export PYBUILD_SYSTEM=pyproject
+<<<<<<< HEAD
 #export PYBUILD_BUILD_ARGS := -Csetup-args=-Dblas=blas -Csetup-args=-Dlapack=lapack
+=======
+#export PYBUILD_BUILD_ARGS := -Csetup-args=-Dcython=cython3
+>>>>>>> main
 
 %:
 	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
@@ -11,11 +15,19 @@ export PYBUILD_SYSTEM=pyproject
 override_dh_clean:
 	dh_clean
 	rm -f $(patsubst %.pyx,%.c,$(wildcard pyFAI/ext/*.pyx))
+<<<<<<< HEAD
 	rm -rf build/html
+=======
+	rm -rf build
+>>>>>>> main
 	rm -rf *.egg-info
 
 override_dh_install:
 	dh_numpy3
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 	# move the scripts to right package
 	dh_install -p pyfai debian/python3-pyfai/usr/bin usr/
 	# remove all scripts installed by pybuild

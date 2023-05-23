@@ -6,9 +6,14 @@ Section: Science/Data Analysis
 
 Format: HTML
 <<<<<<< HEAD
+<<<<<<< HEAD
 Index: /usr/share/doc/pyfai-doc/index.html
 Files: /usr/share/doc/pyfai-doc/*
 =======
 Index: /usr/share/doc/pyfai-doc/html/index.html
 Files: /usr/share/doc/pyfai-doc/html/*
 >>>>>>> f31ce309 (tools for packaging on debian12,)
+=======
+Index: /usr/share/doc/pyfai-doc/index.html
+Files: /usr/share/doc/pyfai-doc/*
+>>>>>>> main

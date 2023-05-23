@@ -2,4 +2,8 @@ version=3
 opts=repacksuffix=+dfsg,\
 uversionmangle=s/(rc|a|b|c)/~$1/,\
 dversionmangle=s/\+dfsg// \
+<<<<<<< HEAD
 http://pypi.debian.net/pyFAI/pyfai-(.+)\.(?:zip|tgz|tbz|txz|(?:tar\.(?:gz|bz2|xz)))
+=======
+http://pypi.debian.net/pyFAI/pyFAI-(.+)\.(?:zip|tgz|tbz|txz|(?:tar\.(?:gz|bz2|xz)))
+>>>>>>> main

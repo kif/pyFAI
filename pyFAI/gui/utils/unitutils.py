@@ -94,26 +94,19 @@ def from2ThRad(twoTheta, unit, wavelength=None, directDist=None, ai=None):
         return numpy.rad2deg(twoTheta)
     elif unit == units.TTH_RAD:
         return twoTheta
-    elif unit == units.Q_A:
-        return (4.e-10 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
-    elif unit == units.Q_NM:
-        return (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
-    elif unit == units.R_MM:
+    elif unit.space == "q":
+        q_A = (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
+        return q_A * unit.scale
+    elif unit.space == "r":
         # GF: correct formula?
         if directDist is not None:
             beamCentre = directDist
         else:
             beamCentre = ai.getFit2D()["directDist"]  # in mm!!
-        return beamCentre * numpy.tan(twoTheta)
-    elif unit == units.R_M:
-        # GF: correct formula?
-        if directDist is not None:
-            beamCentre = directDist
-        else:
-            beamCentre = ai.getFit2D()["directDist"]  # in mm!!
-        return beamCentre * numpy.tan(twoTheta) * 0.001
-    elif unit == units.RecD2_NM:
-        q = (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
-        return (q / (2.0 * numpy.pi)) ** 2
+        return beamCentre * numpy.tan(twoTheta) * 0.001 * unit.scale
+    elif unit.space == "d*2":
+        q_A = (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
+        rec_d2_nm =  (q_A / (2.0 * numpy.pi)) ** 2
+        return rec_d2_nm / unit.scale
     else:
         raise ValueError("Converting from 2th to unit %s is not supported", unit)

@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/09/2023"
+__date__ = "05/10/2023"
 
 import numpy
 import collections.abc
@@ -84,29 +84,29 @@ def from2ThRad(twoTheta, unit, wavelength=None, directDist=None, ai=None):
     .. code-block:: python
 
         directDist = ai.getFit2D()["directDist"]
+    :param unit: instance of pyFAI.units.Unit
+    :param wavelength: wavelength in m
+    :param directDist: distance from sample to beam-center on the detector in _mm_
+    :param ai: instance of pyFAI.azimuthalIntegrator.AzimuthalIntegrator
     """
     if isinstance(twoTheta, numpy.ndarray):
         pass
     elif isinstance(twoTheta, collections.abc.Iterable):
         twoTheta = numpy.array(twoTheta)
 
-    if unit == units.TTH_DEG:
-        return numpy.rad2deg(twoTheta)
-    elif unit == units.TTH_RAD:
-        return twoTheta
+    if unit.space == "2th":
+        return twoTheta * unit.scale
     elif unit.space == "q":
-        q_A = (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
-        return q_A * unit.scale
+        q_nm = (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
+        return q_nm * unit.scale
     elif unit.space == "r":
-        # GF: correct formula?
         if directDist is not None:
-            beamCentre = directDist
+            beamCentre_m = directDist * 1e-3 # convert in m
         else:
-            beamCentre = ai.getFit2D()["directDist"]  # in mm!!
-        return beamCentre * numpy.tan(twoTheta) * 0.001 * unit.scale
+            beamCentre_m = ai.getFit2D()["directDist"] * 1e-3  # convert in m
+        return beamCentre_m * numpy.tan(twoTheta) * unit.scale
     elif unit.space == "d*2":
-        q_A = (4.e-9 * numpy.pi / wavelength) * numpy.sin(.5 * twoTheta)
-        rec_d2_nm =  (q_A / (2.0 * numpy.pi)) ** 2
-        return rec_d2_nm / unit.scale
+        rec_d2_nm = (2e-9 / wavelength * numpy.sin(.5 * twoTheta))**2
+        return rec_d2_nm * unit.scale
     else:
         raise ValueError("Converting from 2th to unit %s is not supported", unit)

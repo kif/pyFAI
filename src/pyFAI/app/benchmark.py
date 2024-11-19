@@ -152,7 +152,7 @@ def main(args=None):
 
     if options.gui and benchmark.pylab is not None:
         benchmark.pylab.ion()
-    input("Enter to quit")
+        input("Enter to quit (and close the plot)")
 
 
 if __name__ == "__main__":

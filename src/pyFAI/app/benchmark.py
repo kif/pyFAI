@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer, Picca Frédéric-Emmanuel, Edgar Gutierrez-Ferna
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "08/11/2024"
+__date__ = "19/11/2024"
 __status__ = "development"
 
 from argparse import ArgumentParser
@@ -115,6 +115,9 @@ def main(args=None):
     parser.add_argument("--all",
                         action="store_true", dest="all", default=False,
                         help="Benchmark using all available methods and devices")
+    parser.add_argument("--no-gui",
+                        action="store_false", dest="gui", default=True,
+                        help="Disables the live plot of curves")
 
     options = parser.parse_args(args)
     if options.debug:
@@ -144,9 +147,10 @@ def main(args=None):
                   algo_list=options.algorithm,
                   impl_list=options.implementation,
                   function=options.function,
-                  all=options.all)
+                  all=options.all,
+                  gui=options.gui)
 
-    if benchmark.pylab is not None:
+    if options.gui and benchmark.pylab is not None:
         benchmark.pylab.ion()
     input("Enter to quit")
 

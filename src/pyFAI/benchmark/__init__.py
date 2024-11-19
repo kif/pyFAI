@@ -24,7 +24,7 @@
 "Benchmark for Azimuthal integration of PyFAI"
 
 __author__ = "Jérôme Kieffer"
-__date__ = "21/05/2024"
+__date__ = "19/11/2024"
 __license__ = "MIT"
 __copyright__ = "2012-2024 European Synchrotron Radiation Facility, Grenoble, France"
 
@@ -613,7 +613,7 @@ class Bench(object):
             filename = f"benchmark-{time.strftime('%Y%m%d-%H%M%S')}.json"
         self.update_mp()
         json.dump(self.results, open(filename, "w"), indent=4)
-        if self.fig is not None:
+        if self.fig:
             self.fig.savefig(filename[:-4] + "svg")
 
     def print_res(self):
@@ -624,10 +624,13 @@ class Bench(object):
             print("%7.2f\t\t" % i + "\t\t".join("%.2f" % (self.results[j].get(i, 0)) for j in self.meth))
 
     def init_curve(self):
-        self.update_mp()
         if self.fig:
             print("Already initialized")
             return
+        elif self.fig is False:
+            print("GUI disabled!")
+            return
+        self.update_mp()
         if pyplot and ((sys.platform in ["win32", "darwin"]) or ("DISPLAY" in os.environ)):
             self.fig, self.ax = pyplot.subplots(figsize=(12, 6))
             self.fig.show()
@@ -710,7 +713,6 @@ class Bench(object):
         self.ax.legend()
         self.fig.savefig("benchmark.png")
         self.fig.show()
-#        plt.ion()
 
     def display_detector_markers(self):
         if not self.fig:
@@ -763,7 +765,7 @@ class Bench(object):
 def run_benchmark(number=10, repeat=1, memprof=False, max_size=1000,
                   do_1d=True, do_2d=False, processor=True, devices="all",
                   split_list=["bbox"], algo_list=["histogram", "CSR"], impl_list=["cython", "opencl"], function="all",
-                  all=False,):
+                  all=False, gui=True):
     """Run the integrated benchmark using the most common algorithms (method parameter)
 
     :param number: Measure timimg over number of executions or average over this time
@@ -776,7 +778,8 @@ def run_benchmark(number=10, repeat=1, memprof=False, max_size=1000,
     """
     print(f"Benchmarking over {number} seconds (best of {repeat} repetitions).")
     bench = Bench(number, repeat, memprof, max_size=max_size)
-    bench.init_curve()
+    if gui:
+        bench.init_curve()
 
     ocl_devices = []
     if ocl:

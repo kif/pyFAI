@@ -31,7 +31,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "10/10/2025"
+__date__ = "24/08/2026"
 
 import logging
 import unittest
@@ -76,7 +76,7 @@ class TestSpline(utilstest.ParametricTestCase):
         "Test the half_ccd back and forth"
         spline_file = utilstest.UtilsTest.getimage("halfccd.spline")
         spline = pyFAI.spline.Spline(spline_file)
-        logger.debug("xmin %s, xmax %s, ymin %s, ymax",
+        logger.debug("xmin %s, xmax %s, ymin %s, ymax %s",
                      spline.xmin, spline.xmax, spline.ymin, spline.ymax)
         spline.spline2array()
         logger.debug("delta_x: %s", spline.xDispArray.shape)

@@ -253,14 +253,12 @@ class TestBugRegression(unittest.TestCase):
                 # Always skip test modules
                 logger.warning("Skip test module %s", path)
                 return True
-            if not UtilsTest.WITH_OPENCL_TEST:
-                if "opencl" in elements:
-                    logger.warning("Skip %s. OpenCL tests disabled", path)
-                    return True
-            if not UtilsTest.WITH_QT_TEST:
-                if "gui" in elements:
-                    logger.warning("Skip %s. Qt tests disabled", path)
-                    return True
+            if not UtilsTest.WITH_OPENCL_TEST and "opencl" in elements:
+                logger.warning("Skip %s. OpenCL tests disabled", path)
+                return True
+            if not UtilsTest.WITH_QT_TEST and "gui" in elements:
+                logger.warning("Skip %s. Qt tests disabled", path)
+                return True
             return False
 
         for root, dirs, files in os.walk(pyFAI_root, topdown=True):

@@ -30,7 +30,7 @@ OpenCL implementation of the preproc module
 
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
-__date__ = "21/11/2025"
+__date__ = "24/08/2026"
 __copyright__ = "2015-2025, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -415,12 +415,12 @@ class OCL_Preproc(OpenclProcessing):
                     self.send_buffer(dark, "dark")
             else:
                 do_dark = numpy.int8(0)
-            if (variance is not None) and self.on_host.get("calc_variance"):
-                if id(variance) != id(self.on_device.get("variance")):
-                    self.send_buffer(variance, "variance")
-            if (dark_variance is not None) and self.on_host.get("calc_variance"):
-                if id(dark_variance) != id(self.on_device.get("dark_variance")):
-                    self.send_buffer(dark_variance, "dark_variance")
+            if ((variance is not None) and self.on_host.get("calc_variance") and
+                    id(variance) != id(self.on_device.get("variance"))):
+                self.send_buffer(variance, "variance")
+            if ((dark_variance is not None) and self.on_host.get("calc_variance") and
+                    id(dark_variance) != id(self.on_device.get("dark_variance"))):
+                self.send_buffer(dark_variance, "dark_variance")
 
             if error_model is None:
                 error_model = self.on_host.get("error_model")

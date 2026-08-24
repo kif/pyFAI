@@ -57,9 +57,8 @@ class JupyCalibWidget(MplCalibWidget):
                 pyplot.pause(0.01)
 
     def maximize(self, update=True):
-        if self.fig:
-            if update:
-                self.update()
+        if self.fig and update:
+            self.update()
 
     def get_ring_value(self):
         "Return the value of the ring widget"

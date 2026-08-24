@@ -28,7 +28,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "07/11/2025"
+__date__ = "24/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -72,9 +72,8 @@ class Beam:
 
     def set_config(self, cfg):
         """Set the configuration from a dictionary"""
-        if "class" in cfg:
-            if cfg["class"] != self.__class__.__name__:
-                raise RuntimeError("class does not match name")
+        if "class" in cfg and cfg["class"] != self.__class__.__name__:
+            raise RuntimeError("class does not match name")
         self.width = cfg.get("width")
         self.profile = cfg.get("profile")
         self.pos = None
@@ -182,9 +181,8 @@ class BaseSensor:
 
     def set_config(self, cfg):
         """Set the configuration from a dictionary"""
-        if "class" in cfg:
-            if cfg["class"] != self.__class__.__name__:
-                raise RuntimeError("class does not match name")
+        if "class" in cfg and cfg["class"] != self.__class__.__name__:
+            raise RuntimeError("class does not match name")
         self.mu = cfg.get("mu")
         return self
 
@@ -245,9 +243,8 @@ class ThinSensor(BaseSensor):
 
     def set_config(self, cfg):
         """Set the configuration from a dictionary"""
-        if "class" in cfg:
-            if cfg["class"] != self.__class__.__name__:
-                raise RuntimeError("class does not match name")
+        if "class" in cfg and cfg["class"] != self.__class__.__name__:
+            raise RuntimeError("class does not match name")
         self.mu = cfg.get("mu")
         self.thickness = float(cfg.get("thickness"))
         # self.efficiency = float(cfg.get("efficiency"))
@@ -434,12 +431,10 @@ class Parallax:
         :param sensor: instance of the BaseSensor
         :param beam: instance of Beam, can be None
         """
-        if sensor:
-            if not isinstance(sensor, BaseSensor):
-                raise RuntimeError("sensor is not a BaseSensor instance")
-        if beam:
-            if not isinstance(beam, Beam):
-                raise RuntimeError("beam is not a Beam instance")
+        if sensor and not isinstance(sensor, BaseSensor):
+            raise RuntimeError("sensor is not a BaseSensor instance")
+        if beam and not isinstance(beam, Beam):
+            raise RuntimeError("beam is not a Beam instance")
         self.sensor = sensor
         self.beam = beam
         self.displacement = None
@@ -508,9 +503,8 @@ class Parallax:
 
     def set_config(self, cfg):
         """Set the configuration from a dictionary"""
-        if "class" in cfg:
-            if cfg["class"] != self.__class__.__name__:
-                raise RuntimeError("class key is expected to be the class-name")
+        if "class" in cfg and cfg["class"] != self.__class__.__name__:
+            raise RuntimeError("class key is expected to be the class-name")
         if "beam" in cfg:
             bfg = cfg["beam"]
             if bfg is None:

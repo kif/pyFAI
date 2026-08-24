@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "31/01/2025"
+__date__ = "24/08/2026"
 
 import os.path
 
@@ -75,15 +75,14 @@ class CalibrantSelector(qt.QComboBox):
         model = self.calibrantModel()
         if model is None:
             return
-        if self.__isFileLoadable:
-            if index == self.count() - 1:
-                # Selection back to the previous location
-                calibrant = model.calibrant()
-                index = self.findCalibrant(calibrant)
-                self.setCurrentIndex(index)
-                # Send the request
-                self.__loadFileRequested()
-                return
+        if self.__isFileLoadable and index == self.count() - 1:
+            # Selection back to the previous location
+            calibrant = model.calibrant()
+            index = self.findCalibrant(calibrant)
+            self.setCurrentIndex(index)
+            # Send the request
+            self.__loadFileRequested()
+            return
 
         item = self.itemData(index)
         old = self.blockSignals(True)

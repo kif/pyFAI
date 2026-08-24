@@ -273,24 +273,23 @@ class _RingPlot(silx.gui.plot.PlotWidget):
             self.__mouseLeave()
             return True
 
-        if event.type() == qt.QEvent.ToolTip:
-            if self.__tth is not None:
-                pos = widget.mapFromGlobal(event.globalPos())
-                coord = widget.pixelToData(pos.x(), pos.y(), axis="left")
+        if event.type() == qt.QEvent.ToolTip and self.__tth is not None:
+            pos = widget.mapFromGlobal(event.globalPos())
+            coord = widget.pixelToData(pos.x(), pos.y(), axis="left")
 
-                pos = coord[0], coord[1]
-                x, y = self.__clampOnImage(pos)
-                angle = self.__tth[y, x]
-                ringId, angle = self.__getClosestAngle(angle)
+            pos = coord[0], coord[1]
+            x, y = self.__clampOnImage(pos)
+            angle = self.__tth[y, x]
+            ringId, angle = self.__getClosestAngle(angle)
 
-                if ringId is not None:
-                    message = f"{stringutil.to_ordinal(ringId + 1)} ring"
-                    qt.QToolTip.showText(event.globalPos(), message)
-                else:
-                    qt.QToolTip.hideText()
-                    event.ignore()
+            if ringId is not None:
+                message = f"{stringutil.to_ordinal(ringId + 1)} ring"
+                qt.QToolTip.showText(event.globalPos(), message)
+            else:
+                qt.QToolTip.hideText()
+                event.ignore()
 
-                return True
+            return True
 
         return False
 

@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/03/2023"
+__date__ = "24/08/2026"
 
 import functools
 import logging
@@ -153,13 +153,12 @@ class ApplicationContext:
         dialog.finished.connect(functools.partial(self.__saveDialogState, dialog))
         self.__configureDialog(dialog)
 
-        if previousFile is not None:
-            if os.path.exists(previousFile):
-                if os.path.isdir(previousFile):
-                    directory = previousFile
-                else:
-                    directory = os.path.dirname(previousFile)
-                dialog.setDirectory(directory)
+        if previousFile is not None and os.path.exists(previousFile):
+            if os.path.isdir(previousFile):
+                directory = previousFile
+            else:
+                directory = os.path.dirname(previousFile)
+            dialog.setDirectory(directory)
 
         return dialog
 

@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/10/2025"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import copy
@@ -271,9 +271,8 @@ class PeakPicker:
         """
 
         if self.widget is None:
-            if widget_klass:
-                if not issubclass(widget_klass, MplCalibWidget):
-                    raise RuntimeError("widget_klass does not derive from MplCalibWidget")
+            if widget_klass and not issubclass(widget_klass, MplCalibWidget):
+                raise RuntimeError("widget_klass does not derive from MplCalibWidget")
             self.widget = widget_klass(new_grp_cb=self.onclick_new_grp,
                                        append_single_cb=self.onclick_append_1_point,
                                        single_point_cb=self.onclick_single_point,

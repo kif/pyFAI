@@ -23,7 +23,7 @@
 "Benchmark for Azimuthal integration of PyFAI"
 
 __author__ = "Jérôme Kieffer"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __license__ = "MIT"
 __copyright__ = "2012-2026 European Synchrotron Radiation Facility, Grenoble, France"
 
@@ -121,15 +121,14 @@ class BenchTest:
 
     def get_device(self):
         res = None
-        if "ai" in dir(self):
-            if "engines" in dir(self.ai):
-                for method in self.ai.engines:
-                    if isinstance(method, Method) and method.impl == "opencl":
-                        res = self.ai.engines[method].engine.ctx.devices[0]
-                        break
-                else:
-                    if ("ocl_csr_integr" in self.ai.engines):
-                        res = self.ai.engines["ocl_csr_integr"].engine.ctx.devices[0]
+        if "ai" in dir(self) and "engines" in dir(self.ai):
+            for method in self.ai.engines:
+                if isinstance(method, Method) and method.impl == "opencl":
+                    res = self.ai.engines[method].engine.ctx.devices[0]
+                    break
+            else:
+                if ("ocl_csr_integr" in self.ai.engines):
+                    res = self.ai.engines["ocl_csr_integr"].engine.ctx.devices[0]
         return res
 
 

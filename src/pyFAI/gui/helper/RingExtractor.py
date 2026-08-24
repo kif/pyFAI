@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/03/2026"
+__date__ = "24/08/2026"
 
 import logging
 
@@ -394,9 +394,8 @@ class RingExtractorThread(qt.QThread):
         ms = marchingsquares.MarchingSquaresMergeImpl(ttha, self.__mask, use_minmax_cache=True)
 
         for i in range(tth.size):
-            if ringNumbers is not None:
-                if i not in ringNumbers:
-                    continue
+            if ringNumbers is not None and i not in ringNumbers:
+                continue
             if rings >= maxRings:
                 break
             mask = numpy.logical_and(ttha >= tth_min[i], ttha < tth_max[i])

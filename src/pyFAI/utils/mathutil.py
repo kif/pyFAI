@@ -33,7 +33,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import logging
@@ -64,9 +64,8 @@ def deg2rad(dd: float, disc: bool = True) -> float:
     """
     # range [0:2pi[
     rp = (dd / 180.0) % 2.0
-    if disc:  # range [-pi:pi[
-        if rp >= 1.0:
-            rp -= 2.0
+    if disc and rp >= 1.0:  # range [-pi:pi[
+        rp -= 2.0
     return rp * math.pi
 
 
@@ -80,9 +79,8 @@ def rad2rad(r: float, disc: bool = True):
     """
     # Set r between (0,2pi)
     r = r % (2 * math.pi)
-    if disc:
-        if r > math.pi:
-            r = r - 2 * math.pi
+    if disc and r > math.pi:
+        r = r - 2 * math.pi
     return r
 
 

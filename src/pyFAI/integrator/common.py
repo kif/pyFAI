@@ -29,7 +29,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "stable"
 __docformat__ = 'restructuredtext'
 
@@ -223,13 +223,12 @@ class Integrator(Geometry):
             mask = numpy.zeros(shape, dtype=bool)
         else:
             mask = mask.astype(bool)
-        if self.USE_LEGACY_MASK_NORMALIZATION:
-            if mask.sum(dtype=int) > mask.size // 2:
-                reason = "The provided mask is not compliant with other engines. "\
+        if self.USE_LEGACY_MASK_NORMALIZATION and mask.sum(dtype=int) > mask.size // 2:
+            reason = "The provided mask is not compliant with other engines. "\
                     "The feature which automatically invert it will be removed soon. "\
                     "For more information see https://github.com/silx-kit/pyFAI/pull/868"
-                deprecated_warning(__name__, name="provided mask content", reason=reason)
-                numpy.logical_not(mask, mask)
+            deprecated_warning(__name__, name="provided mask content", reason=reason)
+            numpy.logical_not(mask, mask)
         if (mask.shape != shape):
             try:
                 mask = mask[:shape[0],:shape[1]]

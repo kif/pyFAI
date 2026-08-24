@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/05/2025"
+__date__ = "24/08/2026"
 
 import logging
 import os.path
@@ -66,12 +66,11 @@ class _MaskToolsWidget(silx.gui.plot.MaskToolsWidget.MaskToolsWidget):
         self.sigUserMaskChanged.emit()
 
     def __extractDirectory(self, filename):
-        if filename is not None and filename != "":
-            if os.path.exists(filename):
-                if os.path.isdir(filename):
-                    return filename
-                else:
-                    return os.path.dirname(filename)
+        if filename is not None and filename != "" and os.path.exists(filename):
+            if os.path.isdir(filename):
+                return filename
+            else:
+                return os.path.dirname(filename)
         return None
 
     @property

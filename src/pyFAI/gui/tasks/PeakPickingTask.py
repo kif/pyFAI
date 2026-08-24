@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import functools
 import logging
@@ -307,10 +307,9 @@ class _PeakSelectionTableModel(qt.QAbstractTableModel):
                     isChecked = False
                 self.requestChangeEnable.emit(peakModel, isChecked)
                 return True
-        elif role == qt.Qt.EditRole:
-            if column == self.ColumnRingNumber:
-                self.requestRingChange.emit(peakModel, value)
-                return True
+        elif role == qt.Qt.EditRole and column == self.ColumnRingNumber:
+            self.requestRingChange.emit(peakModel, value)
+            return True
         return False
 
     def removeRows(self, row, count, parent=qt.QModelIndex()):
@@ -926,15 +925,14 @@ class _RingSelectionBehaviour(qt.QObject):
             index = indexes[0]
             peak = model.peakObject(index)
 
-        if not self.__newRingOption.isChecked():
+        if not self.__newRingOption.isChecked() and peak is not None:
             # It has to be updated
-            if peak is not None:
-                self.__spinnerRing.valueChanged.disconnect(self.__spinerRingChanged)
-                try:
-                    ringNumber = peak.ringNumber()
-                    self.__spinnerRing.setValue(ringNumber)
-                finally:
-                    self.__spinnerRing.valueChanged.connect(self.__spinerRingChanged)
+            self.__spinnerRing.valueChanged.disconnect(self.__spinerRingChanged)
+            try:
+                ringNumber = peak.ringNumber()
+                self.__spinnerRing.setValue(ringNumber)
+            finally:
+                self.__spinnerRing.valueChanged.connect(self.__spinerRingChanged)
 
     def __spinerRingChanged(self):
         """Called when the spinner displaying the selected ring changes."""
@@ -1106,13 +1104,13 @@ class PeakPickingTask(AbstractCalibrationTask):
 
     def __onPlotModeChanged(self, owner):
         # TODO: This condition should not be reached like that
-        if owner is not self.__plot:
+        if (owner is not self.__plot and
+                not self.__arcSelectionMode.isChecked() and
+                not self.__ringSelectionMode.isChecked() and
+                not self.__peakSelectionMode.isChecked()):
             # Here a default plot tool is triggered
             # Set back the default tool
-            if (not self.__arcSelectionMode.isChecked() and
-                    not self.__ringSelectionMode.isChecked() and
-                    not self.__peakSelectionMode.isChecked()):
-                self.__arcSelectionMode.trigger()
+            self.__arcSelectionMode.trigger()
 
     def __createSavePeakDialog(self):
         dialog = CalibrationContext.instance().createFileDialog(self)

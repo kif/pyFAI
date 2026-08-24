@@ -36,7 +36,7 @@ __authors__ = ["Picca Frédéric-Emmanuel", "Jérôme Kieffer", "Edgar Gutierrez
 __contact__ = "picca@synchrotron-soleil.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 __docformat__ = "restructuredtext"
 
@@ -170,9 +170,8 @@ class Unit:
             return False
         for name in dir(self):
             attr = self.__getattribute__(name)
-            if not callable(attr):
-                if attr!=other.__getattribute__(name):
-                    return False
+            if not callable(attr) and attr!=other.__getattribute__(name):
+                return False
         return True
 
     def get(self, key):

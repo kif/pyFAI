@@ -29,7 +29,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import copy
@@ -250,10 +250,9 @@ class Massif:
 
                 logger.debug(msg, idx[1], idx[0], out[1], out[0])
                 p0, p1 = int(round(out[0])), int(round(out[1]))
-                if mask[p0, p1]:
-                    if (self.data[p0, p1] > Imin) and is_far_from_group(out, res, dmin2):
-                        res.append(out)
-                        cnt = 0
+                if mask[p0, p1] and (self.data[p0, p1] > Imin) and is_far_from_group(out, res, dmin2):
+                    res.append(out)
+                    cnt = 0
             if len(res) >= keep or cnt > keep:
                 break
             else:

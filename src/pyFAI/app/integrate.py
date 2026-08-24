@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __satus__ = "production"
 
 import collections
@@ -538,9 +538,8 @@ class MultiFileWriter(io.Writer):
         else:
             outpath = output_name
 
-        if os.path.exists(outpath):
-            if self._mode == HDF5Writer.MODE_DELETE:
-                os.unlink(outpath)
+        if os.path.exists(outpath) and self._mode == HDF5Writer.MODE_DELETE:
+            os.unlink(outpath)
         self._writer = DefaultAiWriter(outpath, engine)
         self._writer.init(fai_cfg=self._fai_cfg, lima_cfg=self._lima_cfg)
 

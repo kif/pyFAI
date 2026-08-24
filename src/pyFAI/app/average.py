@@ -108,13 +108,12 @@ def cleanup_input_paths(input_paths):
     """
     result = []
     for path in input_paths:
-        if "::" in path:
-            if not os.path.exists(path):
-                filename, datapath = path.split("::", 1)
-                datapath = datapath.replace("/", "_")
-                datapath = datapath.replace("\\", "_")
-                datapath = datapath.strip("_")
-                path = filename + "__" + datapath
+        if "::" in path and not os.path.exists(path):
+            filename, datapath = path.split("::", 1)
+            datapath = datapath.replace("/", "_")
+            datapath = datapath.replace("\\", "_")
+            datapath = datapath.strip("_")
+            path = filename + "__" + datapath
         result.append(path)
     return result
 

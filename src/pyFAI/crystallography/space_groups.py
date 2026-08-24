@@ -25,6 +25,12 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
+# The selection rules in this file transcribe the International Tables of
+# Crystallography (ITC vol.A) as literally as possible: the nested `if`
+# statements mirror the structure of the published reflection conditions and
+# `l` is the third Miller index. Do not let a linter "simplify" them.
+# ruff: noqa: E741, SIM102, SIM103
+
 """Space groups: There are 230 space groups as defined in the International
 Tables of Crystallography (ITC vol.A), some of them have different origins.
 For now only the conventional origin is implemented, alternative representation will be
@@ -40,7 +46,7 @@ __authors__ = ["Jérôme Kieffer", "Gudrun Lotze"]
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/01/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 

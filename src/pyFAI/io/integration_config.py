@@ -65,7 +65,7 @@ All those data-classes are serializable to JSON.
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "07/02/2025"
+__date__ = "24/08/2026"
 __docformat__ = 'restructuredtext'
 __all__ = ["WorkerConfig", "WorkerFiberConfig", "asdict", "fields"]
 
@@ -105,12 +105,11 @@ def _normalize_v1_darkflat_files(config, key):
         # Already a list, it's fine
         return
 
-    if isinstance(filenames, (str,)):
-        if "," in filenames:
-            # Create a list from a coma separated string list
-            filenames = filenames.split(",")
-            filenames = [f.strip() for f in filenames]
-            config[key] = filenames
+    if isinstance(filenames, (str,)) and "," in filenames:
+        # Create a list from a coma separated string list
+        filenames = filenames.split(",")
+        filenames = [f.strip() for f in filenames]
+        config[key] = filenames
 
 
 def _patch_v1_to_v2(config):
@@ -198,9 +197,8 @@ def _patch_v1_to_v2(config):
     method = config.get("method", None)
     use_opencl = config.pop("do_OpenCL", False)
 
-    if use_opencl is not None and method is not None:
-        if use_opencl:
-            _logger.warning("Both 'method' and 'do_OpenCL' are defined. 'do_OpenCL' is ignored.")
+    if use_opencl is not None and method is not None and use_opencl:
+        _logger.warning("Both 'method' and 'do_OpenCL' are defined. 'do_OpenCL' is ignored.")
 
     if method is None:
         if use_opencl:

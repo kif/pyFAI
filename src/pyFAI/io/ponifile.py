@@ -30,7 +30,7 @@
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "10/04/2026"
+__date__ = "24/08/2026"
 __docformat__ = 'restructuredtext'
 
 import collections
@@ -205,9 +205,8 @@ class PoniFile:
                     if "pixelsize2" in config:
                         self._detector.pixel2 = float(config["pixelsize2"])
 
-            if "splinefile" in config:
-                if config["splinefile"].lower() != "none":
-                    self._detector.splinefile = config["splinefile"]
+            if "splinefile" in config and config["splinefile"].lower() != "none":
+                self._detector.splinefile = config["splinefile"]
 
         elif version >=2:
                 detector_name = config["detector"]

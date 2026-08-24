@@ -538,10 +538,9 @@ def setup_model(model, options):
     npt = None
     if options.npt_1d is not None:
         npt = options.npt_1d
-    if options.npt_2d_rad is not None:
-        if npt is not None:
-            logger.error("Both --npt and --npt-rad defined. The biggest is used.")
-            npt = max(npt, options.npt_2d_rad)
+    if options.npt_2d_rad is not None and npt is not None:
+        logger.error("Both --npt and --npt-rad defined. The biggest is used.")
+        npt = max(npt, options.npt_2d_rad)
 
     if npt is not None:
         integrationSettingsModel.nPointsRadial().setValue(npt)

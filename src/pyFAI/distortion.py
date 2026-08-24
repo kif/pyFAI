@@ -487,9 +487,8 @@ class Distortion:
         """
         if image.ndim != 2:
             raise RuntimeError("image should be 2D")
-        if variance is not None:
-            if variance.shape != image.shape:
-                raise RuntimeError("variance and image shape do not match")
+        if variance is not None and variance.shape != image.shape:
+            raise RuntimeError("variance and image shape do not match")
 
         if image.shape != self.shape_in:
             logger.warning("The image shape %s is not the same as the detector %s", image.shape, self.shape_in)

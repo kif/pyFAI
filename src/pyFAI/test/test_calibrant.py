@@ -31,7 +31,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jérôme.Kieffer@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import copy
 import itertools
@@ -378,10 +378,9 @@ class TestReflection(unittest.TestCase):
                     good = [i for i in reflections.keys() if i.startswith(nr+":")]
                     if good:
                         ref = reflections[good[0]][()]
-                if "validated" in method.__doc__.lower():
-                    if not numpy.all(ref==table):
-                        print(name, "differ at hkl=", [(int(h), int(k), int(l)) for h,k,l in zip(*numpy.where(ref!=table))])
-                        raise AssertionError(f"Space group {name} did not validate against xrayutilities")
+                if "validated" in method.__doc__.lower() and not numpy.all(ref==table):
+                    print(name, "differ at hkl=", [(int(h), int(k), int(l)) for h,k,l in zip(*numpy.where(ref!=table))])
+                    raise AssertionError(f"Space group {name} did not validate against xrayutilities")
 
 def suite():
     loader = unittest.defaultTestLoader.loadTestsFromTestCase

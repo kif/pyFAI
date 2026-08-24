@@ -30,7 +30,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 
@@ -197,13 +197,12 @@ class Nexus:
         Close the file and update all entries.
         """
         try:
-            if self.mode != "r":
-                if self.h5:
-                    end_time = get_isotime(end_time)
-                    while self.to_close:
-                        entry = self.to_close.pop()
-                        entry["end_time"] = end_time
-                    self.h5.attrs["file_update_time"] = get_isotime()
+            if self.mode != "r" and self.h5:
+                end_time = get_isotime(end_time)
+                while self.to_close:
+                    entry = self.to_close.pop()
+                    entry["end_time"] = end_time
+                self.h5.attrs["file_update_time"] = get_isotime()
         except Exception as error:
             sys.stderr.write(f"{type(error)}: {error},\nwhile finalizing Nexus file\n")
 

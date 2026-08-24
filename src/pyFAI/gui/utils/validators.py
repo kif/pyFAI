@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/10/2020"
+__date__ = "24/08/2026"
 
 import logging
 
@@ -76,11 +76,11 @@ class DoubleValidator(qt.QDoubleValidator):
                 inputText = inputText[0:pos] + locale.decimalPoint() + inputText[pos:]
                 pos = pos + 1
 
-            if locale.numberOptions() == qt.QLocale.RejectGroupSeparator:
-                    if inputText[pos - 1] == locale.groupSeparator():
-                        # filter the group separator
-                        inputText = inputText[pos - 1:] + inputText[pos:]
-                        pos = pos - 1
+            if (locale.numberOptions() == qt.QLocale.RejectGroupSeparator and
+                    inputText[pos - 1] == locale.groupSeparator()):
+                # filter the group separator
+                inputText = inputText[pos - 1:] + inputText[pos:]
+                pos = pos - 1
 
         return super().validate(inputText, pos)
 
@@ -153,19 +153,17 @@ class AdvancedDoubleValidator(DoubleValidator):
         :param str inputText: Text to validate
         :param int pos: Position of the cursor
         """
-        if self.__allowEmpty:
-            if inputText.strip() == "":
-                # python API is not the same as C++ one
-                return qt.QValidator.Acceptable, inputText, pos
+        if self.__allowEmpty and inputText.strip() == "":
+            # python API is not the same as C++ one
+            return qt.QValidator.Acceptable, inputText, pos
 
         acceptable, inputText, pos = super().validate(inputText, pos)
 
-        if acceptable == qt.QValidator.Acceptable:
+        if acceptable == qt.QValidator.Acceptable and self.__boundIncluded != (True, True):
             # Check boundaries
-            if self.__boundIncluded != (True, True):
-                value, isValid = self.toValue(inputText)
-                if not isValid:
-                    acceptable = qt.QValidator.Intermediate
+            value, isValid = self.toValue(inputText)
+            if not isValid:
+                acceptable = qt.QValidator.Intermediate
 
         return acceptable, inputText, pos
 
@@ -177,21 +175,17 @@ class AdvancedDoubleValidator(DoubleValidator):
         :returns: A tuple containing the resulting object and True if the
             string is valid
         """
-        if self.__allowEmpty:
-            if text.strip() == "":
-                return None, True
+        if self.__allowEmpty and text.strip() == "":
+            return None, True
 
         value, isValid = super().toValue(text)
 
-        if isValid:
+        if isValid and self.__boundIncluded != (True, True):
             # Check boundaries
-            if self.__boundIncluded != (True, True):
-                if not self.__boundIncluded[0]:
-                    if value == self.bottom():
-                        isValid = False
-                if not self.__boundIncluded[1]:
-                    if value == self.top():
-                        isValid = False
+            if not self.__boundIncluded[0] and value == self.bottom():
+                isValid = False
+            if not self.__boundIncluded[1] and value == self.top():
+                isValid = False
 
         return value, isValid
 
@@ -201,9 +195,8 @@ class AdvancedDoubleValidator(DoubleValidator):
         :param object value: Input object
         :rtype: str
         """
-        if self.__allowEmpty:
-            if value is None:
-                return ""
+        if self.__allowEmpty and value is None:
+            return ""
         return super().toText(value)
 
 

@@ -710,12 +710,11 @@ class Detector(metaclass=DetectorMeta):
                     self.shape = d1.shape
                 else:  # corner
                     self.shape = tuple(i - 1 for i in d1.shape)
-        elif "ndim" in dir(d2):
-            if d2.ndim == 2:
-                if center:
-                    self.shape = d2.shape
-                else:  # corner
-                    self.shape = tuple(i - 1 for i in d2.shape)
+        elif "ndim" in dir(d2) and d2.ndim == 2:
+            if center:
+                self.shape = d2.shape
+            else:  # corner
+                self.shape = tuple(i - 1 for i in d2.shape)
 
         if center:
             # avoid += It modifies in place then segfaults

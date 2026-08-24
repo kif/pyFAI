@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 from .AbstractModel import AbstractModel
 from .DataModel import DataModel
@@ -77,9 +77,8 @@ class GeometryModel(AbstractModel):
         """
         if not self.__distance.isValid():
             return False
-        if checkWaveLength:
-            if not self.__wavelength.isValid():
-                return False
+        if checkWaveLength and not self.__wavelength.isValid():
+            return False
         if not self.__poni1.isValid():
             return False
         if not self.__poni2.isValid():

@@ -33,7 +33,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "04/12/2025"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import functools
@@ -337,12 +337,11 @@ class Xpad_flat(ImXPadS10):
         d1 and d2 must have the same shape, returned array will have
         the same shape.
         """
-        if self.shape:
-            if (d1 is None) or (d2 is None):
-                r1, r2 = self._calc_pixel_index_from_orientation(center)
-                delta = 0 if center else 1
-                d1 = mathutil.expand2d(r1, self.shape[1] + delta, False)
-                d2 = mathutil.expand2d(r2, self.shape[0] + delta, True)
+        if self.shape and ((d1 is None) or (d2 is None)):
+            r1, r2 = self._calc_pixel_index_from_orientation(center)
+            delta = 0 if center else 1
+            d1 = mathutil.expand2d(r1, self.shape[1] + delta, False)
+            d2 = mathutil.expand2d(r2, self.shape[0] + delta, True)
         corners = self.get_pixel_corners()
         if center:
             # note += would make an increment in place which is bad (segfault !)

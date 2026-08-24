@@ -35,7 +35,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 
 import json
@@ -93,10 +93,9 @@ class IntegrationProcess(qt.QDialog, integrate.IntegrationObserver):
     def __resultReceived(self, result):
         isFiltered = not self._displayResult.isChecked()
         now = time.perf_counter()
-        if self.__lastDisplay is not None:
-            # Display a new result every 500ms, no more
-            if now - self.__lastDisplay < 0.5:
-                isFiltered = True
+        # Display a new result every 500ms, no more
+        if self.__lastDisplay is not None and now - self.__lastDisplay < 0.5:
+            isFiltered = True
         if not isFiltered:
             self.__undisplayedResult = None
             self.__lastDisplay = now
@@ -107,11 +106,10 @@ class IntegrationProcess(qt.QDialog, integrate.IntegrationObserver):
 
     def __displayResultUpdated(self):
         self._plot.setVisible(self._displayResult.isChecked())
-        if self._displayResult.isChecked():
-            if self.__undisplayedResult is not None:
-                result = self.__undisplayedResult
-                self.__undisplayedResult = None
-                self.__displayResult(result, True)
+        if self._displayResult.isChecked() and self.__undisplayedResult is not None:
+            result = self.__undisplayedResult
+            self.__undisplayedResult = None
+            self.__displayResult(result, True)
         self.adjustSize()
 
     def __displayResult(self, result, resetZoom=False):

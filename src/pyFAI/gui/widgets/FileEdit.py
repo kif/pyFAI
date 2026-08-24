@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import logging
 
@@ -63,12 +63,11 @@ class FileEdit(qt.QLineEdit):
         self.returnPressed.connect(self.__returnPressed)
 
     def event(self, event):
-        if event.type() == 207:
-            if self.__previousText != self.text():
-                # TODO: This tries to capture Linux copy-paste using middle mouse
-                # button. But this event does not match exactly what it is intended.
-                # None of the available events capture this special copy-paste.
-                self.__wasModified = True
+        if event.type() == 207 and self.__previousText != self.text():
+            # TODO: This tries to capture Linux copy-paste using middle mouse
+            # button. But this event does not match exactly what it is intended.
+            # None of the available events capture this special copy-paste.
+            self.__wasModified = True
         return qt.QLineEdit.event(self, event)
 
     def focusInEvent(self, event):
@@ -77,9 +76,9 @@ class FileEdit(qt.QLineEdit):
         super().focusInEvent(event)
 
     def dragEnterEvent(self, event):
-        if self.__model is not None:
-            if event.mimeData().hasFormat("text/uri-list") or event.mimeData().hasFormat("application/x-silx-uri"):
-                event.acceptProposedAction()
+        if self.__model is not None and (
+                event.mimeData().hasFormat("text/uri-list") or event.mimeData().hasFormat("application/x-silx-uri")):
+            event.acceptProposedAction()
 
     def dropEvent(self, event):
         mimeData = event.mimeData()

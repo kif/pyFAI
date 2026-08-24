@@ -39,7 +39,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 __docformat__ = "restructuredtext"
 
@@ -2584,9 +2584,8 @@ class Geometry:
         GeometryClass = self.__class__.__mro__[-2]
         # should be pyFAI.geometry.core.Geometry
         if isinstance(type_, str):
-            if "." not in type_:
-                if type_ in self.PROMOTION:
-                    type_ = self.PROMOTION[type_]
+            if "." not in type_ and type_ in self.PROMOTION:
+                type_ = self.PROMOTION[type_]
             import importlib
 
             modules = type_.split(".")

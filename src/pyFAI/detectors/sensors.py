@@ -36,7 +36,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "13/05/2026"
+__date__ = "24/08/2026"
 __status__ = "stable"
 
 import copy
@@ -189,15 +189,14 @@ class SensorConfig:
 
     def __eq__(self, other):
         """Check for equality, especially for the thickness within 1µm"""
-        if isinstance(other, SensorConfig):  # not self.__class__ as it could be a derived class
-            if (self.material == other.material):
-                if (self.thickness and
-                    other.thickness and
-                    numpy.isclose(self.thickness, other.thickness, atol=self.THICKNESS_TOLERANCE)):
-
-                        return True
-                else:
-                    return self.thickness == other.thickness
+        # not self.__class__ as it could be a derived class
+        if isinstance(other, SensorConfig) and self.material == other.material:
+            if (self.thickness and
+                other.thickness and
+                numpy.isclose(self.thickness, other.thickness, atol=self.THICKNESS_TOLERANCE)):
+                return True
+            else:
+                return self.thickness == other.thickness
         return False
 
     def as_dict(self):

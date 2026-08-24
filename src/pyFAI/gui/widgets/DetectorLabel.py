@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import html
 import logging
@@ -70,9 +70,8 @@ class DetectorLabel(qt.QLabel):
         self.__detector: Detector | None = None
 
     def dragEnterEvent(self, event):
-        if self.__model is not None:
-            if event.mimeData().hasFormat("text/uri-list"):
-                event.acceptProposedAction()
+        if self.__model is not None and event.mimeData().hasFormat("text/uri-list"):
+            event.acceptProposedAction()
 
     def dropEvent(self, event):
         mimeData = event.mimeData()
@@ -104,18 +103,16 @@ class DetectorLabel(qt.QLabel):
         self.__model.setDetector(detector)
 
     def __getModelName(self, detector: Detector):
-        if isinstance(detector, pyFAI.detectors.NexusDetector):
-            if hasattr(detector, "name"):
-                name = detector.name
-                if name is not None:
-                    return name
+        if isinstance(detector, pyFAI.detectors.NexusDetector) and hasattr(detector, "name"):
+            name = detector.name
+            if name is not None:
+                return name
 
         detectorClass = detector.__class__
 
         modelName = None
-        if hasattr(detectorClass, "aliases"):
-            if len(detectorClass.aliases) > 0:
-                modelName = detectorClass.aliases[0]
+        if hasattr(detectorClass, "aliases") and len(detectorClass.aliases) > 0:
+            modelName = detectorClass.aliases[0]
         if modelName is None:
             modelName = detectorClass.__name__
         return modelName

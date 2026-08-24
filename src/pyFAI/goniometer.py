@@ -33,7 +33,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -157,9 +157,8 @@ class GeometryTransformation:
         :param content: Should be None or the name of the class (may be used
                         in the future to dispatch to multiple derivative classes)
         """
-        if content is not None:
-            if content not in (self.__class__.__name__, "GeometryTransformation"):
-                raise RuntimeError("Ensures we use the constructor of the right class")
+        if content is not None and content not in (self.__class__.__name__, "GeometryTransformation"):
+            raise RuntimeError("Ensures we use the constructor of the right class")
         if numexpr is None:
             raise RuntimeError("Geometry translation requires the *numexpr* package")
         self.expressions = OrderedDict()
@@ -300,9 +299,8 @@ class ExtendedTransformation:
         :param content: Should be None or the name of the class (may be used
             in the future to dispatch to multiple derivative classes)
         """
-        if content is not None:
-            if content not in (self.__class__.__name__, "ExtendedTransformation"):
-                raise RuntimeError("Ensures we use the constructor of the right class")
+        if content is not None and content not in (self.__class__.__name__, "ExtendedTransformation"):
+            raise RuntimeError("Ensures we use the constructor of the right class")
         if numexpr is None:
             raise RuntimeError("This Transformation requires the *numexpr* package")
         self.expressions = OrderedDict()

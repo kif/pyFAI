@@ -26,7 +26,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "08/10/2025"
+__date__ = "24/08/2026"
 __status__ = "development"
 
 import logging
@@ -96,9 +96,8 @@ class CSCIntegrator:
             new_indptr[:len(indptr)] = indptr
             indptr = new_indptr
         nbins = numpy.prod(self.bins)
-        if len(indices):
-            if max(indices) > nbins:
-                raise RuntimeError("indices cannot be larger than the number of bins")
+        if len(indices) and max(indices) > nbins:
+            raise RuntimeError("indices cannot be larger than the number of bins")
         self._csc = csc_matrix((data, indices, indptr), shape=(nbins, self.size))
         self._csc2 = csc_matrix((data * data, indices, indptr), shape=(nbins, self.size))  # contains the coef squared, used for variance propagation
 

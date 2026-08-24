@@ -491,22 +491,21 @@ class IntegrationPlot(qt.QFrame):
             self.__mouseLeave()
             return True
 
-        if event.type() == qt.QEvent.ToolTip:
-            if self.__availableRings is not None:
-                pos = widget.mapFromGlobal(event.globalPos())
-                coord = widget.pixelToData(pos.x(), pos.y())
+        if event.type() == qt.QEvent.ToolTip and self.__availableRings is not None:
+            pos = widget.mapFromGlobal(event.globalPos())
+            coord = widget.pixelToData(pos.x(), pos.y())
 
-                angle = coord[0]
-                ringId, angle = self.__getClosestAngle(angle)
+            angle = coord[0]
+            ringId, angle = self.__getClosestAngle(angle)
 
-                if ringId is not None:
-                    message = f"{stringutil.to_ordinal(ringId + 1)} ring"
-                    qt.QToolTip.showText(event.globalPos(), message)
-                else:
-                    qt.QToolTip.hideText()
-                    event.ignore()
+            if ringId is not None:
+                message = f"{stringutil.to_ordinal(ringId + 1)} ring"
+                qt.QToolTip.showText(event.globalPos(), message)
+            else:
+                qt.QToolTip.hideText()
+                event.ignore()
 
-                return True
+            return True
 
         return False
 

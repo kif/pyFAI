@@ -28,7 +28,7 @@ __authors__ = ["Jérôme Kieffer", "Valentin Valls"]
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import logging
@@ -251,7 +251,7 @@ _FILTER_NAME_MAPPING = {}
 for _f in _FILTERS:
     _FILTER_NAME_MAPPING[_f.name] = _f
 
-_AVERAGE_DARK_FILTERS = set(["min", "max", "sum", "mean", "std", "quantiles", "median"])
+_AVERAGE_DARK_FILTERS = {"min", "max", "sum", "mean", "std", "quantiles", "median"}
 
 
 def is_algorithm_name_exists(filter_name):

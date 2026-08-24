@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer, Picca Frédéric-Emmanuel"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import logging
@@ -58,7 +58,7 @@ def parse_algorithms(options):
     """Return a list of initialized algorithms from the command line"""
 
     methods = options.method.split(",")
-    methods = set(methods) - set([""])
+    methods = set(methods) - {""}
 
     if options.quantiles:
         for sep in "-,":

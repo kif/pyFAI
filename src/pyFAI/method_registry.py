@@ -33,7 +33,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 
 import copy
@@ -217,7 +217,7 @@ class IntegrationMethod:
                                      target, target_type,
                                      degradable=degradable)
 
-        any_values = set(["any", "all", "*"])
+        any_values = {"any", "all", "*"}
         if dim in any_values:
             methods = []
             for d in [1, 2]:

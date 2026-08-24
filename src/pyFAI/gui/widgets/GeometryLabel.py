@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/11/2022"
+__date__ = "24/08/2026"
 
 
 from silx.gui.widgets.ElidedLabel import ElidedLabel
@@ -61,7 +61,7 @@ class GeometryLabel(ElidedLabel):
             "rotation3": geometry.rotation3().value(),
         }
 
-        if set(args.values()) == set([None]):
+        if set(args.values()) == {None}:
             self.setText("No geometry")
             self.setToolTip("")
             return

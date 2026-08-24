@@ -33,7 +33,7 @@ __authors__ = ["Emily Massahud", "Jérôme Kieffer"]
 __contact__ = "Jérôme.Kieffer@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "04/12/2025"
+__date__ = "24/08/2026"
 
 import unittest
 from unittest import mock
@@ -194,7 +194,7 @@ class TestExtractOneRing(RingExtractionTestBase):
         )
         self.assertEqual(
             self.ring_extraction.massif.peaks_from_area.call_args_list[0][1]["seed"],
-            set(((1, 1), (2, 2), (3, 3))),
+            {(1, 1), (2, 2), (3, 3)},
         )
         self.assertEqual(
             self.ring_extraction.massif.peaks_from_area.call_args_list[0][1]["ring"],

@@ -24,7 +24,7 @@
 
 __authors__ = ["Valentin Valls", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "13/03/2026"
+__date__ = "24/08/2026"
 
 import logging
 import os
@@ -486,7 +486,7 @@ class DetectorSelectorDrop(qt.QWidget):
             raise RuntimeError("field should be FILE, MANUAL or eventually None")
 
     def __createManufacturerModel(self):
-        manufacturers = set([])
+        manufacturers = set()
         for detector in detectors.ALL_DETECTORS.values():
             manufacturer = detector.MANUFACTURER
             if isinstance(manufacturer, list):

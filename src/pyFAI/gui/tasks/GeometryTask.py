@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import datetime
 import logging
@@ -434,7 +434,7 @@ class _RingPlot(silx.gui.plot.PlotWidget):
         else:
             step = int(len(angles) / 50)
 
-        self.__displayedAngles = set([])
+        self.__displayedAngles = set()
 
         for items in self.__ringItems.values():
             for item in items:

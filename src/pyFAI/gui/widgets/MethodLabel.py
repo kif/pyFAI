@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import logging
 
@@ -94,7 +94,7 @@ class MethodLabel(qt.QLabel):
     def __compare(self, method, methodReference):
         if method == methodReference:
             return "same"
-        any_set = set(["*", "any", "all", None])
+        any_set = {"*", "any", "all", None}
         if method.split != methodReference.split and methodReference.split not in any_set:
             return "degraded"
         if method.impl != methodReference.impl and methodReference.impl not in any_set:
@@ -170,13 +170,13 @@ class MethodLabel(qt.QLabel):
                                                                   degradable=False)
         dimensions = set([m.dimension for m in methods])
 
-        if dimensions == set([1, 2]):
+        if dimensions == {1, 2}:
             availability = "1D and 2D"
-        elif dimensions == set([1]):
+        elif dimensions == {1}:
             availability = "Only 1D"
-        elif dimensions == set([2]):
+        elif dimensions == {2}:
             availability = "Only 2D"
-        elif dimensions == set([]):
+        elif dimensions == set():
             availability = "Not available"
         else:
             _logger.error("Unexpected dimensions %s", dimensions)

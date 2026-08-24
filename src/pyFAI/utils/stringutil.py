@@ -27,7 +27,7 @@
 __author__ = "valentin.valls@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -138,8 +138,8 @@ def to_scientific_unicode(value, digits=3):
     return value
 
 
-_TRUE_STRINGS = set(["yes", "true", "1"])
-_FALSE_STRINGS = set(["no", "false", "0"])
+_TRUE_STRINGS = {"yes", "true", "1"}
+_FALSE_STRINGS = {"no", "false", "0"}
 
 
 def to_bool(string):

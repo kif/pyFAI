@@ -30,7 +30,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 
 import copy
@@ -350,7 +350,7 @@ class GeometryRefinement(AzimuthalIntegrator):
         """Update values taking care of fixed parameters."""
         # TODO: Take care of ranges too
         if fixed is None:
-            fixed = set([])
+            fixed = set()
         if dist is not None and "dist" not in fixed:
             self.dist = dist
         if wavelength is not None and "wavelength" not in fixed:

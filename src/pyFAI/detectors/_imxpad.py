@@ -501,9 +501,9 @@ class Cirpad(ImXPadS10):
         nmd = self._rotation(corners, rot)
         # Size in mm of the chip in the Y direction (including 10px gap)
         size_Y = ((560.0 + 3 * 6 + 20) * 0.13 / 1000)
-        for i in range(1, int(round(numpy.abs(rot[2]) / 6.74))):
+        for i in range(1, round(numpy.abs(rot[2]) / 6.74)):
             deltaX = deltaX + numpy.sin(numpy.deg2rad(-rot[2] - 6.74 * (i)))
-        for i in range(int(round(numpy.abs(rot[2]) / 6.74))):
+        for i in range(round(numpy.abs(rot[2]) / 6.74)):
             deltaY = deltaY + numpy.cos(numpy.deg2rad(-rot[2] - 6.74 * (i + 1)))
         return self._translation(nmd, [size_Y * deltaX, size_Y * deltaY, 0])
 

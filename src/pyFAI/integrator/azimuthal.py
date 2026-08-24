@@ -1142,7 +1142,7 @@ class AzimuthalIntegrator(Integrator):
         method = self._normalize_method(method, dim=2, default=self.DEFAULT_METHOD_2D)
         if (method.impl_lower == "opencl") and npt_azim and (npt_azim > 1):
             old = npt_azim
-            npt_azim = 1 << int(round(log(npt_azim, 2)))  # power of two above
+            npt_azim = 1 << round(log(npt_azim, 2))  # power of two above
             if npt_azim != old:
                 logger.warning("Change number of azimuthal bins to nearest power of two: %s->%s",
                                old, npt_azim)
@@ -1603,7 +1603,7 @@ class AzimuthalIntegrator(Integrator):
 
         if (method.impl_lower == "opencl") and npt_azim and (npt_azim > 1):
             old = npt_azim
-            npt_azim = 1 << int(round(log(npt_azim, 2)))  # power of two above
+            npt_azim = 1 << round(log(npt_azim, 2))  # power of two above
             if npt_azim != old:
                 logger.warning("Change number of azimuthal bins to nearest power of two: %s->%s",
                                old, npt_azim)

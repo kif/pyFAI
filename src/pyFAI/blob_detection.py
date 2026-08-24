@@ -241,7 +241,7 @@ class BlobDetection:
             self.raw[to_mask] = 0
 
             # initial grow of 4*sigma_dest ... subsequent re-grow of half
-            grow = int(round(4.0 * self.dest_sigma))
+            grow = round(4.0 * self.dest_sigma)
             if not pyFAI_morphology:
                 my, mx = numpy.ogrid[-grow:grow + 1, -grow:grow + 1]
                 grow = (mx * mx + my * my) <= grow * grow

@@ -99,7 +99,7 @@ class TestAddition(unittest.TestCase):
         """
         tests the addition  kernel
         """
-        maxi = int(round(numpy.log2(self.shape)))
+        maxi = round(numpy.log2(self.shape))
         for i in range(maxi):
             d_array_result = pyopencl.array.empty_like(self.d_array_img)
             wg = 1 << i

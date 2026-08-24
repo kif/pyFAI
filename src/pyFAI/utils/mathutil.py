@@ -166,8 +166,8 @@ def gaussian_filter(
             sigma = (float(sigma[0]), float(sigma[1]))
         else:
             sigma = (float(sigma), float(sigma))
-        k0 = int(math.ceil(4.0 * float(sigma[0])))
-        k1 = int(math.ceil(4.0 * float(sigma[1])))
+        k0 = math.ceil(4.0 * float(sigma[0]))
+        k1 = math.ceil(4.0 * float(sigma[1]))
 
         if mode != "wrap":
             input_img = expand(input_img, (k0, k1), mode, cval)
@@ -263,10 +263,10 @@ def dog_filter(
             input_img = expand(input_img, sigma, mode, cval)
         s0, s1 = input_img.shape
         if isinstance(sigma, (list, tuple)):
-            k0 = int(math.ceil(4.0 * float(sigma[0])))
-            k1 = int(math.ceil(4.0 * float(sigma[1])))
+            k0 = math.ceil(4.0 * float(sigma[0]))
+            k1 = math.ceil(4.0 * float(sigma[1]))
         else:
-            k0 = k1 = int(math.ceil(4.0 * float(sigma)))
+            k0 = k1 = math.ceil(4.0 * float(sigma))
 
         res = numpy.fft.ifft2(
             numpy.fft.fft2(input_img.astype(complex))
@@ -295,10 +295,10 @@ def expand(
     s0, s1 = input_img.shape
     dtype = input_img.dtype
     if isinstance(sigma, (list, tuple)):
-        k0 = int(math.ceil(float(sigma[0])))
-        k1 = int(math.ceil(float(sigma[1])))
+        k0 = math.ceil(float(sigma[0]))
+        k1 = math.ceil(float(sigma[1]))
     else:
-        k0 = k1 = int(math.ceil(float(sigma)))
+        k0 = k1 = math.ceil(float(sigma))
     if k0 > s0 or k1 > s1:
         raise RuntimeError(
             f"Makes little sense to apply a kernel ({k0},{k1})larger than the image ({s0},{s1})"

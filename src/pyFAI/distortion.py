@@ -211,8 +211,8 @@ class Distortion:
                             corner_pos.shape = -1, 2
                             pos1_min, pos2_min = corner_pos.min(axis=0)
                             pos1_max, pos2_max = corner_pos.max(axis=0)
-                            self._shape_out = (int(ceil(pos1_max - pos1_min)),
-                                               int(ceil(pos2_max - pos2_min)))
+                            self._shape_out = (ceil(pos1_max - pos1_min),
+                                               ceil(pos2_max - pos2_min))
                             self.offset1, self.offset2 = pos1_min, pos2_min
                         pixel_delta = self.pos.view()
                         pixel_delta.shape = -1, 4, 2
@@ -651,10 +651,10 @@ class Quad:
         self.C1 = C1
         self.D0 = D0
         self.D1 = D1
-        self.offset0 = int(floor(min(self.A0, self.B0, self.C0, self.D0)))
-        self.offset1 = int(floor(min(self.A1, self.B1, self.C1, self.D1)))
-        self.box_size0 = int(ceil(max(self.A0, self.B0, self.C0, self.D0))) - self.offset0
-        self.box_size1 = int(ceil(max(self.A1, self.B1, self.C1, self.D1))) - self.offset1
+        self.offset0 = floor(min(self.A0, self.B0, self.C0, self.D0))
+        self.offset1 = floor(min(self.A1, self.B1, self.C1, self.D1))
+        self.box_size0 = ceil(max(self.A0, self.B0, self.C0, self.D0)) - self.offset0
+        self.box_size1 = ceil(max(self.A1, self.B1, self.C1, self.D1)) - self.offset1
         self.A0 -= self.offset0
         self.A1 -= self.offset1
         self.B0 -= self.offset0
@@ -783,7 +783,7 @@ class Quad:
                         if dA > AA:
                             dA = AA
                             AA = -1
-                        self.box[int(floor(start)), h] += sign * dA
+                        self.box[floor(start), h] += sign * dA
                         AA -= dA
                         h += 1
             else:
@@ -798,11 +798,11 @@ class Quad:
                             if dA > AA:
                                 dA = AA
                                 AA = -1
-                            self.box[int(floor(P)) - 1, h] += sign * dA
+                            self.box[floor(P) - 1, h] += sign * dA
                             AA -= dA
                             h += 1
                 # subsection P1->Pn
-                for i in range(int(floor(P)), int(floor(stop))):
+                for i in range(floor(P), floor(stop)):
                     A = calc_area(i, i + 1)
                     if A != 0:
                         AA = abs(A)
@@ -831,7 +831,7 @@ class Quad:
                             if dA > AA:
                                 dA = AA
                                 AA = -1
-                            self.box[int(floor(P)), h] += sign * dA
+                            self.box[floor(P), h] += sign * dA
                             AA -= dA
                             h += 1
         elif start > stop:  # negative contribution. Nota is start=stop: no contribution
@@ -847,7 +847,7 @@ class Quad:
                         if dA > AA:
                             dA = AA
                             AA = -1
-                        self.box[int(floor(start)), h] += sign * dA
+                        self.box[floor(start), h] += sign * dA
                         AA -= dA
                         h += 1
             else:
@@ -863,11 +863,11 @@ class Quad:
                             if dA > AA:
                                 dA = AA
                                 AA = -1
-                            self.box[int(floor(P)), h] += sign * dA
+                            self.box[floor(P), h] += sign * dA
                             AA -= dA
                             h += 1
                 # subsection P1->Pn
-                for i in range(int(start), int(ceil(stop)), -1):
+                for i in range(int(start), ceil(stop), -1):
                     A = calc_area(i, i - 1)
                     if A != 0:
                         AA = abs(A)
@@ -895,6 +895,6 @@ class Quad:
                             if dA > AA:
                                 dA = AA
                                 AA = -1
-                            self.box[int(floor(stop)), h] += sign * dA
+                            self.box[floor(stop), h] += sign * dA
                             AA -= dA
                             h += 1

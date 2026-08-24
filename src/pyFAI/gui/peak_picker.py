@@ -82,8 +82,8 @@ def preprocess_image(data, log=False, clip=0.001):
     # skip lowest and highest per mille of image values via vmin/vmax
     sorted_list = data_disp.flatten()  # explicit copy
     sorted_list.sort()
-    show_min = sorted_list[int(round(clip * (sorted_list.size - 1)))]
-    show_max = sorted_list[int(round((1.0 - clip) * (sorted_list.size - 1)))]
+    show_min = sorted_list[round(clip * (sorted_list.size - 1))]
+    show_max = sorted_list[round((1.0 - clip) * (sorted_list.size - 1))]
     bounds = (show_min, show_max)
     return  data_disp, bounds
 

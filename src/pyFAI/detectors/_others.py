@@ -134,8 +134,8 @@ class Pixium(Detector):
         """
         super().__init__(pixel1=pixel1, pixel2=pixel2, max_shape=max_shape, orientation=orientation)
         if (pixel1 != self.DEFAULT_PIXEL1) or (pixel2 != self.DEFAULT_PIXEL2):
-            self._binning = (int(round(pixel1 / self.DEFAULT_PIXEL1)),
-                             int(round(pixel2 / self.DEFAULT_PIXEL2)))
+            self._binning = (round(pixel1 / self.DEFAULT_PIXEL1),
+                             round(pixel2 / self.DEFAULT_PIXEL2))
             self.shape = tuple(s // b for s, b in zip(self.MAX_SHAPE, self._binning))
 
 
@@ -155,8 +155,8 @@ class Apex2(Detector):
         """
         super().__init__(pixel1=pixel1, pixel2=pixel2, max_shape=max_shape, orientation=orientation)
         if (pixel1 != self.PIXEL_SIZE[0]) or (pixel2 != self.PIXEL_SIZE[1]):
-            self._binning = (int(round(pixel1 / self.PIXEL_SIZE[0])),
-                             int(round(pixel2 / self.PIXEL_SIZE[1])))
+            self._binning = (round(pixel1 / self.PIXEL_SIZE[0]),
+                             round(pixel2 / self.PIXEL_SIZE[1]))
             self.shape = tuple(s // b for s, b in zip(self.MAX_SHAPE, self._binning))
 
 

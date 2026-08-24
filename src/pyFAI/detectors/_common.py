@@ -531,9 +531,9 @@ class Detector(metaclass=DetectorMeta):
         :type bin_size: (int, int)
         """
         if "__len__" in dir(bin_size) and len(bin_size) >= 2:
-            bin_size = int(round(float(bin_size[0]))), int(round(float(bin_size[1])))
+            bin_size = round(float(bin_size[0])), round(float(bin_size[1]))
         else:
-            b = int(round(float(bin_size)))
+            b = round(float(bin_size))
             bin_size = (b, b)
         if bin_size != self._binning:
             ratioX = bin_size[1] / self._binning[1]

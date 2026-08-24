@@ -373,9 +373,9 @@ class Cell:
         :return: dict d-spacing as string, list of tuple with Miller indices
                 preceded with the numerical value
         """
-        hmax = int(ceil(self.a / dmin))
-        kmax = int(ceil(self.b / dmin))
-        lmax = int(ceil(self.c / dmin))
+        hmax = ceil(self.a / dmin)
+        kmax = ceil(self.b / dmin)
+        lmax = ceil(self.c / dmin)
         res = {}
         for hkl in itertools.product(
             range(-hmax, hmax + 1), range(-kmax, kmax + 1), range(-lmax, lmax + 1)

@@ -433,7 +433,7 @@ class Bench:
                 t1 = time.perf_counter()
                 bench_test.stmt()
                 t2 = time.perf_counter()
-                loops = int(ceil(self.nbr / (t2 - t1)))
+                loops = ceil(self.nbr / (t2 - t1))
                 self.print_init2(t1 - t0, t2 - t1, loops)
 
             except memory_error as error:
@@ -544,7 +544,7 @@ class Bench:
                 _res = bench_test.stmt()
                 t2 = time.perf_counter()
                 self.print_init(t2 - t0)
-                loops = int(ceil(self.nbr / (t2 - t0)))
+                loops = ceil(self.nbr / (t2 - t0))
             except memory_error as error:
                 print(f"MemoryError: {error}")
                 break

@@ -2387,7 +2387,7 @@ refinement process.
         smooth out around the mask to avoid aligning on the mask
         """
         logger.debug("in smooth_mask")
-        fwhm = int(round(2.0 * hwhm))
+        fwhm = round(2.0 * hwhm)
         sigma = hwhm / math.sqrt(2 * math.log(2))
 
         if self.mask is not None:

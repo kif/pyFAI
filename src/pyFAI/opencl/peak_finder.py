@@ -155,7 +155,7 @@ class OCL_PeakFinder(OCL_CSR_Integrator):
             # one float8, i.e. 32 bytes per thread of storage is needed
             device = self.ctx.devices[0]
             # platform = device.platform.name.lower()
-            block_size = 1 << int(math.floor(math.log((device.local_mem_size - 40) / 32.0, 2.0)))
+            block_size = 1 << math.floor(math.log((device.local_mem_size - 40) / 32.0, 2.0))
             self.force_workgroup_size = False
         else:
             self.force_workgroup_size = True
@@ -493,7 +493,7 @@ class OCL_PeakFinder(OCL_CSR_Integrator):
         # allocate local memory: we store 4 bytes but at most 1 pixel out of 4 can be a peak
 
         hw = patch_size // 2  # Half width of the patch
-        buffer_size = int(math.ceil(wg * 4 / ((1 + hw) * min(wg0, 1 + hw))))
+        buffer_size = math.ceil(wg * 4 / ((1 + hw) * min(wg0, 1 + hw)))
         kw_proj["local_highidx"] = pyopencl.LocalMemory(1 * buffer_size)
         kw_proj["local_peaks"] = pyopencl.LocalMemory(4 * buffer_size)
         kw_proj["local_buffer"] = pyopencl.LocalMemory(8 * (wg0 + 2 * hw) * (wg1 + 2 * hw))

@@ -191,7 +191,7 @@ class Massif:
         region2 = region * (cleaned_data > mean)
         idx = numpy.vstack(numpy.where(region2)).T
         numpy.random.shuffle(idx)
-        nmax = min(nmax, int(ceil(sqrt(idx.shape[0]))))
+        nmax = min(nmax, ceil(sqrt(idx.shape[0])))
         if massif_contour is not None:
             try:
                 massif_contour(region)
@@ -249,7 +249,7 @@ class Massif:
             if out is not None:
 
                 logger.debug(msg, idx[1], idx[0], out[1], out[0])
-                p0, p1 = int(round(out[0])), int(round(out[1]))
+                p0, p1 = round(out[0]), round(out[1])
                 if mask[p0, p1] and (self.data[p0, p1] > Imin) and is_far_from_group(out, res, dmin2):
                     res.append(out)
                     cnt = 0

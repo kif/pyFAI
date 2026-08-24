@@ -33,7 +33,7 @@ Mainly used at ESRF with FReLoN CCD camera.
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import logging
@@ -239,7 +239,7 @@ class Spline:
                 # Keep this at the end
                 indexLine += 1
         except Exception:
-            logger.error("Error while reading file", exc_info=True)
+            logger.exception("Error while reading file")
             raise OSError(f"Spline File parsing error: {filename}")
 
     def comparison(self, ref, verbose=False):

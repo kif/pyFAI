@@ -27,7 +27,7 @@ __author__ = "Valentin Valls"
 __contact__ = "valentin.valls@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import datetime
@@ -266,14 +266,14 @@ def parse_pixel_size(pixel_size) -> tuple[float, float] :
         try:
             result = tuple(float(i) * 1e-6 for i in sp[:2])
         except Exception:
-            logger.error("Error in reading pixel size_2")
+            logger.exception("Error in reading pixel size_2")
             raise ValueError("Not a valid pixel size")
     elif len(sp) == 1:
         px = sp[0]
         try:
             result = (float(px) * 1e-6, float(px) * 1e-6)
         except Exception:
-            logger.error("Error in reading pixel size_1")
+            logger.exception("Error in reading pixel size_1")
             raise ValueError("Not a valid pixel size")
     else:
         logger.error("Error in reading pixel size_0")

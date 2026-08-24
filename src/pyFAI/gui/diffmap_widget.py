@@ -31,7 +31,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/03/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -171,7 +171,7 @@ class DiffMapWidget(qt.QWidget):
             qt.loadUi(get_ui_file(self.uif), self)
         except AttributeError as _error:
             logger.error("It looks like your installation suffers from this bug: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=697348")
-            logger.error(f"{type(_error)}: {_error}")
+            logger.exception(f"{type(_error)}: {_error}")
             raise RuntimeError("Please upgrade your installation of PyQt (or apply the patch)")
 
         pyfaiIcon = icons.getQIcon("pyfai:gui/images/icon")

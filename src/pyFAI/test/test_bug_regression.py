@@ -293,7 +293,7 @@ class TestBugRegression(unittest.TestCase):
                         logger.info("Expected failure importing %s from %s with error: %s",
                                     fqn, path, err)
                     else:
-                        logger.error("Failed importing %s from %s with error: %s%s: %s",
+                        logger.exception("Failed importing %s from %s with error: %s%s: %s",
                                      fqn, path, os.linesep,
                                      err.__class__.__name__, err)
                         raise

@@ -27,7 +27,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 
 import logging
@@ -454,7 +454,7 @@ class Distortion:
                     out = type(out)(out)
 
         except ValueError as _err:
-            logger.error("Requested in_shape=%s out_shape=%s and ", self.shape_in, self.shape_out)
+            logger.exception("Requested in_shape=%s out_shape=%s and ", self.shape_in, self.shape_out)
             raise
         return out
 
@@ -555,7 +555,7 @@ class Distortion:
                         out = type(out)(out)
 
             except ValueError as _err:
-                logger.error("Requested in_shape=%s out_shape=%s and ", self.shape_in, self.shape_out)
+                logger.exception("Requested in_shape=%s out_shape=%s and ", self.shape_in, self.shape_out)
                 raise
         return out
 

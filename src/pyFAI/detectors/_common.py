@@ -189,7 +189,7 @@ class Detector(metaclass=DetectorMeta):
             try:
                 detector = detectorClass(**kwargs)
             except Exception as err:  # IGNORE:W0703:
-                logger.error(f"Unable to configure detector {name} with config: {config}\n{type(err).__name__}: {err}")
+                logger.exception(f"Unable to configure detector {name} with config: {config}\n{type(err).__name__}: {err}")
                 raise
             if binning:
                 detector.binning = binning
@@ -1603,7 +1603,7 @@ def _ensure_dict(dico_or_str:str|dict)-> dict:
         try:
             config = json.loads(dico_or_str)
         except Exception as err:  # IGNORE:W0703:
-            logger.error(f"Unable to parse config `{config}` as JSON.\n{type(err).__name__}: {err}")
+            logger.exception(f"Unable to parse config `{config}` as JSON.\n{type(err).__name__}: {err}")
             raise
     return config
 

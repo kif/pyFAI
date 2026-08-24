@@ -391,7 +391,7 @@ class Worker:
                     "method:",
                     str(kwarg.get("method"))
                     ]
-            logger.error("\n".join(err2))
+            logger.exception("\n".join(err2))
             raise
         else:
             if self.radial is None:
@@ -1052,7 +1052,7 @@ class WorkerFiber(Worker):
                     "method:",
                     str(kwarg.get("method"))
                     ]
-            logger.error("\n".join(err2))
+            logger.exception("\n".join(err2))
             raise
 
         if writer is not None:

@@ -44,7 +44,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 
 import json
@@ -392,7 +392,7 @@ class Worker:
                     str(kwarg.get("method"))
                     ]
             logger.error("\n".join(err2))
-            raise err
+            raise
         else:
             if self.radial is None:
                 self.radial = integrated_result.radial
@@ -1053,7 +1053,7 @@ class WorkerFiber(Worker):
                     str(kwarg.get("method"))
                     ]
             logger.error("\n".join(err2))
-            raise err
+            raise
 
         if writer is not None:
             writer.write(integrated_result)

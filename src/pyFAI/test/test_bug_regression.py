@@ -35,7 +35,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "2015-2025 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import copy
 import logging
@@ -296,7 +296,7 @@ class TestBugRegression(unittest.TestCase):
                         logger.error("Failed importing %s from %s with error: %s%s: %s",
                                      fqn, path, os.linesep,
                                      err.__class__.__name__, err)
-                        raise err
+                        raise
 
     def test_bug_816(self):
         "Ensure the chi-disontinuity is properly set"

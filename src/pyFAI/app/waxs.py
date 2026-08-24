@@ -37,7 +37,6 @@ __status__ = "production"
 
 import logging
 import os
-import sys
 import time
 from argparse import ArgumentParser
 

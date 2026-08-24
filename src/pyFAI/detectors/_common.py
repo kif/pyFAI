@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "stable"
 
 import copy
@@ -190,7 +190,7 @@ class Detector(metaclass=DetectorMeta):
                 detector = detectorClass(**kwargs)
             except Exception as err:  # IGNORE:W0703:
                 logger.error(f"Unable to configure detector {name} with config: {config}\n{type(err).__name__}: {err}")
-                raise err
+                raise
             if binning:
                 detector.binning = binning
         else:
@@ -1604,7 +1604,7 @@ def _ensure_dict(dico_or_str:str|dict)-> dict:
             config = json.loads(dico_or_str)
         except Exception as err:  # IGNORE:W0703:
             logger.error(f"Unable to parse config `{config}` as JSON.\n{type(err).__name__}: {err}")
-            raise err
+            raise
     return config
 
 

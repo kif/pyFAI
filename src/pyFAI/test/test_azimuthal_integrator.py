@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import copy
 import gc
@@ -866,9 +866,9 @@ class TestUnweighted(unittest.TestCase):
                     res = self.ai.integrate1d(self.img, 10, method=method, **self.kwargs)
                 elif method.dim == 2:
                     res = self.ai.integrate2d(self.img, 10, method=method, **self.kwargs)
-            except Exception as err:
+            except Exception:
                 print("Unable to integrate using method", method)
-                raise err
+                raise
             sum_signal = res.sum_signal
             sum_normalization = res.sum_normalization
             count = res.count
@@ -905,8 +905,8 @@ class TestUnweighted(unittest.TestCase):
             try:
                 self.assertTrue(numpy.allclose(sum_signal, sum_normalization), f"Unweighted: signal == norm for {method} because signal==flat")
                 self.assertTrue(numpy.allclose(sum_normalization, count), f"Unweighted: norm == count for {method}")
-            except AssertionError as err:
-                raise err
+            except AssertionError:
+                raise
             except Exception as err:
                 self.fail(f"Unweighted failed for {method} with exception {err}")
 

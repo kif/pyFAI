@@ -115,6 +115,7 @@ extend-exclude = [
     "build",
     "doc/source/tutorials",  # notebooks rely on IPython magics (%%cython, %pylab, ...)
     "sandbox",               # playground scripts, excluded from releases (see .gitattributes)
+    "src/pyFAI/third_party", # vendored code: kept as close as possible to upstream
 ]
 
 [tool.ruff.lint]

@@ -37,7 +37,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 
 import logging
@@ -141,9 +141,7 @@ class Calibrant:
             return False
         if self._wavelength != other._wavelength:
             return False
-        if self.dspacing != other.dspacing:  # enforce lazy-loading
-            return False
-        return True
+        return self.dspacing == other.dspacing  # enforce lazy-loading
 
     def __ne__(self, other: object) -> bool:
         """

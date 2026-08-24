@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 from .AbstractModel import AbstractModel
 from .DataModel import DataModel
@@ -62,9 +62,7 @@ class Fit2dGeometryModel(AbstractModel):
             return False
         if self.__tilt.value() != other.tilt().value():
             return False
-        if self.__tiltPlan.value() != other.tiltPlan().value():
-            return False
-        return True
+        return self.__tiltPlan.value() == other.tiltPlan().value()
 
     def isValid(self, checkWaveLength=True):
         """Check if all the modele have a meaning.
@@ -80,9 +78,7 @@ class Fit2dGeometryModel(AbstractModel):
             return False
         if not self.__tilt.isValid():
             return False
-        if not self.__tiltPlan.isValid():
-            return False
-        return True
+        return self.__tiltPlan.isValid()
 
     def distance(self):
         return self.__distance

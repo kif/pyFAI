@@ -65,9 +65,7 @@ class GeometryModel(AbstractModel):
             return False
         if self.__rotation2.value() != other.rotation2().value():
             return False
-        if self.__rotation3.value() != other.rotation3().value():
-            return False
-        return True
+        return self.__rotation3.value() == other.rotation3().value()
 
     def isValid(self, checkWaveLength=True):
         """Check if all the model have a meaning.
@@ -87,9 +85,7 @@ class GeometryModel(AbstractModel):
             return False
         if not self.__rotation2.isValid():
             return False
-        if not self.__rotation3.isValid():
-            return False
-        return True
+        return self.__rotation3.isValid()
 
     def distance(self):
         return self.__distance

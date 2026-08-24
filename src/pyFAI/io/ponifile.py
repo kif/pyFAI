@@ -103,17 +103,15 @@ class PoniFile:
         """Checks the equality of two ponifile instances"""
         if not isinstance(other, self.__class__):
             return False
-        if ((self._detector != other._detector) or
-            (self._dist != other._dist) or
-            (self._poni1 != other._poni1) or
-            (self._poni2 != other._poni2) or
-            (self._rot1 != other._rot1) or
-            (self._rot2 != other._rot2) or
-            (self._rot3 != other._rot3) or
-            (self._wavelength != other._wavelength) or
-            (self._parallax != other._parallax)):
-            return False
-        return True
+        return ((self._detector == other._detector) and
+                (self._dist == other._dist) and
+                (self._poni1 == other._poni1) and
+                (self._poni2 == other._poni2) and
+                (self._rot1 == other._rot1) and
+                (self._rot2 == other._rot2) and
+                (self._rot3 == other._rot3) and
+                (self._wavelength == other._wavelength) and
+                (self._parallax == other._parallax))
 
     def make_headers(self, type_:str="list"):
         "Generate a header for files, as list or dict or str"

@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/10/2020"
+__date__ = "24/08/2026"
 
 from pyFAI import units
 
@@ -45,9 +45,7 @@ class IntegrationSettingsModel(AbstractModel):
         self.__nPointsAzimuthal.changed.connect(self.wasChanged)
 
     def isValid(self):
-        if self.__radialUnit.value() is None:
-            return False
-        return True
+        return self.__radialUnit.value() is not None
 
     def radialUnit(self):
         return self.__radialUnit

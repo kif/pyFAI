@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/10/2020"
+__date__ = "24/08/2026"
 
 from .AbstractModel import AbstractModel
 from .ConstraintModel import ConstraintModel
@@ -63,9 +63,7 @@ class GeometryConstraintsModel(AbstractModel):
             return False
         if not self.__rotation2.isValid():
             return False
-        if not self.__rotation3.isValid():
-            return False
-        return True
+        return self.__rotation3.isValid()
 
     def distance(self):
         return self.__distance

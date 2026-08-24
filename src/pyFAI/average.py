@@ -256,9 +256,7 @@ _AVERAGE_DARK_FILTERS = {"min", "max", "sum", "mean", "std", "quantiles", "media
 
 def is_algorithm_name_exists(filter_name):
     """Return true if the name is a name of a filter algorithm"""
-    if filter_name in _FILTER_NAME_MAPPING or filter_name in _AVERAGE_DARK_FILTERS:
-        return True
-    return False
+    return filter_name in _FILTER_NAME_MAPPING or filter_name in _AVERAGE_DARK_FILTERS
 
 
 class AlgorithmCreationError(RuntimeError):

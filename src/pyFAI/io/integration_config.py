@@ -693,9 +693,7 @@ class WorkerConfig:
     def do_polarization(self):
         if self.polarization_description is None:
             return False
-        else:
-            return True
-        if "__len__" in dir(self.polarization_factor):
+        elif "__len__" in dir(self.polarization_factor):
             return bool(self.polarization_factor)
         else:
             return True

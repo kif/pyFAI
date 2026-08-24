@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import logging
 import os
@@ -170,9 +170,7 @@ class LoadImageToolButton(qt.QToolButton):
 
         :rtype: bool
         """
-        if isinstance(self.__model, ImageFromFilenameModel):
-            return True
-        return False
+        return isinstance(self.__model, ImageFromFilenameModel)
 
     def filename(self):
         if self.__model is None:

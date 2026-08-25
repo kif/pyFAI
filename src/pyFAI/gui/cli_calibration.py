@@ -2208,10 +2208,9 @@ class MultiCalib:
         trp = dist.copy()
         centerX = dist.copy()
         centerY = dist.copy()
-        idx = 0
         print()
         print("Results of linear regression for distance in mm")
-        for key, dico in self.results.items():
+        for idx, (key, dico) in enumerate(self.results.items()):
             print(key, dico["dist"])
             print(dico["ai"])
             x[idx] = dico["dist"] * 1000

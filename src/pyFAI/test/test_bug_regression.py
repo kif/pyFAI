@@ -35,7 +35,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "2015-2025 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import copy
 import logging
@@ -501,12 +501,10 @@ class TestBugRegression(unittest.TestCase):
                        ("full", "lut", "cython"),
                        ("full", "csr", "cython"),
                        ]:
-            idx = 0
-            for start in range(-90, 90, sector_size):
+            for idx, start in enumerate(range(-90, 90, sector_size)):
                 end = start + sector_size
                 res = ai.integrate1d(img, npt, method=method, azimuth_range=[start, end])
                 out[idx] = res.intensity
-                idx += 1
             # print(out)
             std = out.std(axis=0)
             self.assertGreater(std.min(), 0, f"output are not all the same with {method}")

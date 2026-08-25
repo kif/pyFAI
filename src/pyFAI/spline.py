@@ -33,7 +33,7 @@ Mainly used at ESRF with FReLoN CCD camera.
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import logging
@@ -194,8 +194,7 @@ class Spline:
         with open(filename) as opened_file:
             stringSpline = [i.rstrip() for i in opened_file]
         try:
-            indexLine = 0
-            for oneLine in stringSpline:
+            for indexLine, oneLine in enumerate(stringSpline):
                 stripedLine = oneLine.strip().upper()
                 if stripedLine == "VALID REGION":
                     data = stringSpline[indexLine + 1]
@@ -236,8 +235,6 @@ class Spline:
                     self.ySplineKnotsX = numpy.array(databloc[:splineKnotsXLen], dtype=numpy.float32)
                     self.ySplineKnotsY = numpy.array(databloc[splineKnotsXLen:splineKnotsXLen + splineKnotsYLen], dtype=numpy.float32)
                     self.ySplineCoeff = numpy.array(databloc[splineKnotsXLen + splineKnotsYLen:], dtype=numpy.float32)
-                # Keep this at the end
-                indexLine += 1
         except Exception:
             logger.exception("Error while reading file")
             raise OSError(f"Spline File parsing error: {filename}")

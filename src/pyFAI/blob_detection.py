@@ -30,7 +30,7 @@ __authors__ = ["Aurore Deschildre", "Jérôme Kieffer"]
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 
@@ -300,7 +300,6 @@ class BlobDetection:
         self.dogs = numpy.zeros(dog_shape, dtype=numpy.float32)
 
         idx = 0
-        i = 0
         for _sigma_abs, sigma_rel in self.sigmas:
             # if self.already_blurred != [] and i < 3:
             #    sigma_rel = 0
@@ -313,7 +312,6 @@ class BlobDetection:
                 self.dogs[idx] = previous - new_blur
                 previous = new_blur
                 idx += 1
-            i += 1
 
         if self.dogs[0].shape == self.raw.shape:
             self.dogs_init = self.dogs

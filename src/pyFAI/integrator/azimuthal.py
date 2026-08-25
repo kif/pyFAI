@@ -29,7 +29,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/06/2026"
+__date__ = "25/08/2026"
 __status__ = "stable"
 __docformat__ = 'restructuredtext'
 
@@ -1367,7 +1367,7 @@ class AzimuthalIntegrator(Integrator):
             solidangle = None
 
         if polarization_factor is None:
-            polarization = polarization_crc = None
+            polarization = _polarization_crc = None
         else:
             polarization, _polarization_crc = self.polarization(data.shape, polarization_factor, with_checksum=True)
 
@@ -1844,7 +1844,7 @@ class AzimuthalIntegrator(Integrator):
             solidangle = None
 
         if polarization_factor is None:
-            polarization = polarization_crc = None
+            polarization = _polarization_crc = None
         else:
             polarization, _polarization_crc = self.polarization(data.shape, polarization_factor, with_checksum=True)
 

@@ -65,8 +65,7 @@ class PeakSelectionModel(AbstractModel):
         return count
 
     def __iter__(self):
-        for p in self.__peaks:
-            yield p
+        yield from self.__peaks
 
     def __getitem__(self, index):
         return self.__peaks[index]

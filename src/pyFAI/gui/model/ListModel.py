@@ -88,8 +88,7 @@ class ChangeListEvent:
 
         :rtype: Iterator[ChangeEvent]
         """
-        for event in self.__events:
-            yield event
+        yield from self.__events
 
     def __getitem__(self, key):
         """

@@ -73,8 +73,7 @@ class IntegratedPatternPlotWidget(PlotWidget):
         self.setCentralWidget(centralWidget)
 
     def __iter__(self):
-        for legend in self.getAllCurves(just_legend=True):
-            yield legend
+        yield from self.getAllCurves(just_legend=True)
 
 
     def _initRoi(self):

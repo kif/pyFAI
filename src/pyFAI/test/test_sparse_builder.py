@@ -61,8 +61,7 @@ class TestSparseBuilder(utilstest.ParametricTestCase):
         builders["pack"] = sparse_builder.SparseBuilder(nbin, mode="pack", heap_size=512)
         builders["pack_small_heap"] = sparse_builder.SparseBuilder(nbin, mode="pack", heap_size=3)
 
-        for builder_name, builder in builders.items():
-            yield builder_name, builder
+        yield from builders.items()
 
     def subtest_each_builders(self, nbin):
         for builder_name, builder in self.each_builders(nbin):

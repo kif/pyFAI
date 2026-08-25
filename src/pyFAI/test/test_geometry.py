@@ -380,7 +380,7 @@ class TestFastPath(utilstest.ParametricTestCase):
         """
         geometries = self.get_geometries()
         count_a = 17
-        dunits = dict((u.split("_")[0], v) for u, v in units.RADIAL_UNITS.items())
+        dunits = {u.split("_")[0]: v for u, v in units.RADIAL_UNITS.items()}
         params = itertools.product(geometries, dunits.values())
         for data, space in params:
             with self.subTest(data=data, space=space):

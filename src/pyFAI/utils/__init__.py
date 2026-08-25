@@ -33,7 +33,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import glob
@@ -250,7 +250,7 @@ def readFloatFromKeyboard(text, dictVar):
     try:
         vals = [float(i) for i in fromkb.split()]
     except ValueError:
-        logging.error("Error in parsing values")
+        logger.error("Error in parsing values")
     else:
         found = False
         for i in dictVar:

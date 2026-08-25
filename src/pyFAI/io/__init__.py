@@ -41,7 +41,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 
@@ -100,7 +100,7 @@ class Writer:
     """
     Abstract class for writers.
     """
-    CONFIG_ITEMS = ["filename", "dirname", "extension", "subdir", "hpath"]
+    CONFIG_ITEMS = ("filename", "dirname", "extension", "subdir", "hpath")
 
     def __init__(self, filename=None, extension=None):
         """

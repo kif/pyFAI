@@ -35,7 +35,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -380,14 +380,14 @@ class ControlPoints:
                 try:
                     input_ring = int(res)
                 except (ValueError, TypeError):
-                    logging.error("I did not understand the ring number you entered")
+                    logger.error("I did not understand the ring number you entered")
                 else:
                     if input_ring >= 0 and input_ring < len(self.calibrant.dspacing):
                         last_ring = ring
                         gpt.ring = input_ring
                         is_ok = True
                     else:
-                        logging.error("Invalid ring number %i (range 0 -> %2i)",
+                        logger.error("Invalid ring number %i (range 0 -> %2i)",
                                       input_ring, len(self.calibrant.dspacing) - 1)
 
     def setWavelength_change2th(self, value=None):

@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "stable"
 
 import copy
@@ -43,7 +43,7 @@ import os
 import posixpath
 import threading
 import types
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy
 
@@ -104,8 +104,8 @@ class Detector(metaclass=DetectorMeta):
     MANUFACTURER = None
     CORNERS = 4
     force_pixel = False  # Used to specify pixel size should be defined by the class itself.
-    aliases = []  # list of alternative names
-    registry = {}  # list of  detectors ...
+    aliases = ()  # list of alternative names
+    registry: ClassVar[dict] = {}  # list of  detectors ...
     uniform_pixel = True  # tells all pixels have the same size
     IS_FLAT = True  # this detector is flat
     IS_CONTIGUOUS = True  # No gaps: all pixels are adjacent, speeds-up calculation

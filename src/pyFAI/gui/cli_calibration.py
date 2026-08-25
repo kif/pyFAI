@@ -3,7 +3,7 @@
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
 #
-#    Copyright (C) 2013-2025 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2026 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -36,9 +36,10 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
+from typing import ClassVar
 import logging
 import math
 import os
@@ -126,7 +127,7 @@ class AbstractCalibration:
                 " display too many images without crashing, this"\
                 " is why the window showing the diffraction image"\
                 " is closed"
-    _HELP = {"help": "Try to get the help of a given action, like 'refine?'. Use done when finished. "
+    _HELP: ClassVar[dict] = {"help": "Try to get the help of a given action, like 'refine?'. Use done when finished. "
              "Most command are composed of 'action parameter value' like 'set wavelength 1 A'.",
              "get": "print he value of a parameter",
              "set": "set the value of a parameter to the given value, i.e 'set wavelength 0.1 nm', units are optional",
@@ -149,10 +150,10 @@ class AbstractCalibration:
              "chiplot": "plot control point radial error as function of azimuthal angle, optional parameters: the rings for which this need to be plotted",
              "delete": "delete a group of points, provide the letter."
              }
-    PARAMETERS = ["dist", "poni1", "poni2", "rot1", "rot2", "rot3", "wavelength"]
-    UNITS = {"dist": "meter", "poni1": "meter", "poni2": "meter", "rot1": "radian",
+    PARAMETERS = ("dist", "poni1", "poni2", "rot1", "rot2", "rot3", "wavelength")
+    UNITS: ClassVar[dict] = {"dist": "meter", "poni1": "meter", "poni2": "meter", "rot1": "radian",
              "rot2": "radian", "rot3": "radian", "wavelength": "meter"}
-    VALID_URL = ["", 'file', 'hdf5', "nxs", "h5"]
+    VALID_URL = ("", 'file', 'hdf5', "nxs", "h5")
     PTS_PER_DEG = 0.3
 
     def __init__(self, img=None, mask=None, detector=None, wavelength=None, calibrant=None):
@@ -670,7 +671,7 @@ class AbstractCalibration:
         fixed = self.fixed if fixed is None else fixed
 
         if win32 and self.peakPicker is not None:
-            logging.info(self.win_error)
+            logger.info(self.win_error)
             self.peakPicker.closeGUI()
         if self.geoRef is None:
             self.geoRef = self.initgeoRef()

@@ -27,7 +27,7 @@
 """Test for OpenCL sorting on GPU"""
 
 __license__ = "MIT"
-__date__ = "08/10/2025"
+__date__ = "24/08/2026"
 __copyright__ = "2015-2021, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -79,7 +79,7 @@ def sigma_clip(image, sigma_lo=3, sigma_hi=3, max_iter=5, axis=0):
 @unittest.skipIf(UtilsTest.opencl is False, "User request to skip OpenCL tests")
 @unittest.skipIf(ocl is None, "OpenCL is not available")
 class TestOclSort(unittest.TestCase):
-    KNOWN_INVALID_RESULTS = ["Portable Computing Language"]
+    KNOWN_INVALID_RESULTS = ("Portable Computing Language",)
     # This platform is known to process properly but giving wrong results.
     # See https://github.com/pocl/pocl/issues/617
 

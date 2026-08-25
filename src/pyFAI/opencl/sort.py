@@ -32,7 +32,7 @@ separation on GPU.
 
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 __copyright__ = "2015, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -62,10 +62,10 @@ class Separator(OpenclProcessing):
     Implementation of sort, median filter and trimmed-mean in  pyopencl
     """
     DUMMY = numpy.finfo(numpy.float32).min
-    kernel_files = ["silx:opencl/doubleword.cl",
+    kernel_files = ("silx:opencl/doubleword.cl",
                     "pyfai:openCL/bitonic.cl",
                     "pyfai:openCL/separate.cl",
-                    "pyfai:openCL/sigma_clip.cl"]
+                    "pyfai:openCL/sigma_clip.cl")
 
     def __init__(self, npt_height=512, npt_width=1024, ctx=None, devicetype="all",
                  platformid=None, deviceid=None,

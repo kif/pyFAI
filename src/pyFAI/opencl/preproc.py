@@ -30,10 +30,11 @@ OpenCL implementation of the preproc module
 
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __copyright__ = "2015-2025, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
+from typing import ClassVar
 import logging
 from collections import OrderedDict
 
@@ -53,7 +54,7 @@ logger = logging.getLogger(__name__)
 
 class OCL_Preproc(OpenclProcessing):
     """OpenCL class for pre-processing ... mainly for demonstration"""
-    buffers = [BufferDescription("output", 4, numpy.float32, mf.READ_WRITE),
+    buffers = (BufferDescription("output", 4, numpy.float32, mf.READ_WRITE),
                BufferDescription("image", 1, numpy.float32, mf.READ_WRITE),
                BufferDescription("image_raw", 8, numpy.uint8, mf.READ_WRITE),
                BufferDescription("temp", 4, numpy.uint8, mf.READ_WRITE),
@@ -65,9 +66,9 @@ class OCL_Preproc(OpenclProcessing):
                BufferDescription("solidangle", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("absorption", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("mask", 1, numpy.int8, mf.READ_ONLY),
-               ]
-    kernel_files = ["pyfai:openCL/preprocess.cl"]
-    mapping = {numpy.int8: "s8_to_float",
+               )
+    kernel_files = ("pyfai:openCL/preprocess.cl",)
+    mapping: ClassVar[dict] = {numpy.int8: "s8_to_float",
                numpy.uint8: "u8_to_float",
                numpy.int16: "s16_to_float",
                numpy.uint16: "u16_to_float",

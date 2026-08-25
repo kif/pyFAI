@@ -1369,7 +1369,7 @@ class AzimuthalIntegrator(Integrator):
         if polarization_factor is None:
             polarization = polarization_crc = None
         else:
-            polarization, polarization_crc = self.polarization(data.shape, polarization_factor, with_checksum=True)
+            polarization, _polarization_crc = self.polarization(data.shape, polarization_factor, with_checksum=True)
 
         if (method.algo_lower == "csr"):
             "This is the only method implemented for now ..."
@@ -1846,7 +1846,7 @@ class AzimuthalIntegrator(Integrator):
         if polarization_factor is None:
             polarization = polarization_crc = None
         else:
-            polarization, polarization_crc = self.polarization(data.shape, polarization_factor, with_checksum=True)
+            polarization, _polarization_crc = self.polarization(data.shape, polarization_factor, with_checksum=True)
 
         if (method.algo_lower == "csr"):
             "This is the only method implemented for now ..."

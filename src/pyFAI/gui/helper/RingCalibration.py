@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import collections
 import logging
@@ -49,7 +49,7 @@ class GeometryRefinementContext:
     constraints. It make the context difficult to manage and to trust.
     """
 
-    PARAMETERS = ["dist", "poni1", "poni2", "rot1", "rot2", "rot3", "wavelength"]
+    PARAMETERS = ("dist", "poni1", "poni2", "rot1", "rot2", "rot3", "wavelength")
 
     def __init__(self, *args, **kwargs):
         _logger.debug("GeometryRefinementContext.__init__")

@@ -64,7 +64,7 @@ class ImXPadS10(ModuleDetector):
     PIXEL_SIZE = (130e-6, 130e-6)
     BORDER_SIZE_RELATIVE = 2.5
     force_pixel = True
-    aliases = ["Imxpad S10"]
+    aliases = ("Imxpad S10",)
     uniform_pixel = False
     SENSORS = tuple()
 
@@ -231,7 +231,7 @@ class ImXPadS70(ImXPadS10):
     PIXEL_SIZE = (130e-6, 130e-6)
     BORDER_SIZE_RELATIVE = 2.5
     force_pixel = True
-    aliases = ["Imxpad S70"]
+    aliases = ("Imxpad S70",)
     PIXEL_EDGES = None  # array of size max_shape+1: pixels are contiguous
 
     def __init__(self, pixel1=130e-6, pixel2=130e-6, max_shape=None, module_size=None, orientation=0, sensor:SensorConfig|None=None):
@@ -248,7 +248,7 @@ class ImXPadS70V(ImXPadS10):
     PIXEL_SIZE = (130e-6, 130e-6)
     BORDER_SIZE_RELATIVE = 2.5
     force_pixel = True
-    aliases = ["Imxpad S70 V"]
+    aliases = ("Imxpad S70 V",)
     PIXEL_EDGES = None  # array of size max_shape+1: pixels are contiguous
 
 
@@ -261,7 +261,7 @@ class ImXPadS140(ImXPadS10):
     PIXEL_SIZE = (130e-6, 130e-6)
     BORDER_PIXEL_SIZE_RELATIVE = 2.5
     force_pixel = True
-    aliases = ["Imxpad S140"]
+    aliases = ("Imxpad S140",)
 
 
 class Xpad_flat(ImXPadS10):
@@ -274,7 +274,7 @@ class Xpad_flat(ImXPadS10):
     force_pixel = True
     MAX_SHAPE = (960, 560)
     uniform_pixel = False
-    aliases = ["Xpad S540 flat", "d5"]
+    aliases = ("Xpad S540 flat", "d5")
     MODULE_SIZE = (120, 80)  # number of pixels per module (y, x)
     PIXEL_SIZE = (130e-6, 130e-6)
     BORDER_PIXEL_SIZE_RELATIVE = 2.5
@@ -438,12 +438,12 @@ class Cirpad(ImXPadS10):
     IS_CONTIGUOUS = False
     force_pixel = True
     uniform_pixel = False
-    aliases = ["CirPAD", "XCirpad"]
+    aliases = ("CirPAD", "XCirpad")
     MEDIUM_MODULE_SIZE = (560, 120)
     MODULE_SIZE = (80, 120)  # number of pixels per module (y, x)
     PIXEL_SIZE = (130e-6, 130e-6)
     DIFFERENT_PIXEL_SIZE = 2.5
-    ROT = [0, 0, -6.74]
+    ROT = (0, 0, -6.74)
 
     # static functions used in order to define the Cirpad
     @staticmethod

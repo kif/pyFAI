@@ -31,10 +31,11 @@ Histogram (atomic-add) based integrator
 """
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __copyright__ = "2012-2021, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
+from typing import ClassVar
 import logging
 from collections import OrderedDict
 
@@ -63,7 +64,7 @@ class OCL_Histogram1d(OpenclProcessing):
     It also performs the preprocessing using the preproc kernel
     """
     BLOCK_SIZE = 32
-    buffers = [BufferDescription("output4", 4, numpy.float32, mf.READ_WRITE),
+    buffers = (BufferDescription("output4", 4, numpy.float32, mf.READ_WRITE),
                BufferDescription("radial", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("azimuthal", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("tmp", 1, numpy.float32, mf.READ_WRITE),
@@ -77,12 +78,12 @@ class OCL_Histogram1d(OpenclProcessing):
                BufferDescription("solidangle", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("absorption", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("mask", 1, numpy.int8, mf.READ_ONLY),
-               ]
-    kernel_files = ["silx:opencl/doubleword.cl",
+               )
+    kernel_files = ("silx:opencl/doubleword.cl",
                     "pyfai:openCL/preprocess.cl",
                     "pyfai:openCL/ocl_histo.cl"
-                    ]
-    mapping = {numpy.int8: "s8_to_float",
+                    )
+    mapping: ClassVar[dict] = {numpy.int8: "s8_to_float",
                numpy.uint8: "u8_to_float",
                numpy.int16: "s16_to_float",
                numpy.uint16: "u16_to_float",
@@ -256,7 +257,7 @@ class OCL_Histogram1d(OpenclProcessing):
         """
         # concatenate all needed source files into a single openCL module
         kernel_file = kernel_file or self.kernel_files[-1]
-        kernels = self.kernel_files[:-1] + [kernel_file]
+        kernels = [*self.kernel_files[:-1], kernel_file]
         try:
             compile_options = self.get_compiler_options(x87_volatile=True, apple_gpu=True)
         except (AttributeError, TypeError):  # Silx version too old
@@ -636,7 +637,7 @@ class OCL_Histogram2d(OCL_Histogram1d):
     It also performs the preprocessing using the preproc kernel
     """
     BLOCK_SIZE = 32
-    buffers = [BufferDescription("output4", 4, numpy.float32, mf.READ_WRITE),
+    buffers = (BufferDescription("output4", 4, numpy.float32, mf.READ_WRITE),
                BufferDescription("radial", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("azimuthal", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("image_raw", 1, numpy.float32, mf.READ_ONLY),
@@ -649,12 +650,12 @@ class OCL_Histogram2d(OCL_Histogram1d):
                BufferDescription("solidangle", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("absorption", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("mask", 1, numpy.int8, mf.READ_ONLY),
-               ]
-    kernel_files = ["silx:opencl/doubleword.cl",
+               )
+    kernel_files = ("silx:opencl/doubleword.cl",
                     "pyfai:openCL/preprocess.cl",
                     "pyfai:openCL/ocl_histo.cl"
-                    ]
-    mapping = {numpy.int8: "s8_to_float",
+                    )
+    mapping: ClassVar[dict] = {numpy.int8: "s8_to_float",
                numpy.uint8: "u8_to_float",
                numpy.int16: "s16_to_float",
                numpy.uint16: "u16_to_float",

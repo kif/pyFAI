@@ -777,7 +777,7 @@ def eq_exit_angle_horz(
     :param wavelength: in meter
     :return: horizontal exit angle in radians
     """
-    x_rot, y_rot, z_rot = rotate_cartesian(x=x, y=y, z=z, incident_angle=incident_angle, tilt_angle=tilt_angle)
+    x_rot, _y_rot, z_rot = rotate_cartesian(x=x, y=y, z=z, incident_angle=incident_angle, tilt_angle=tilt_angle)
     return _eq_scattering_angle_horizontal(x=x_rot, z=z_rot)
 
 
@@ -891,8 +891,8 @@ def eq_qbeam(
     """
     (
         qsample_beam,
-        qsample_horz,
-        qsample_vert,
+        _qsample_horz,
+        _qsample_vert,
     ) = q_sample(
         x=x,y=y,z=z,
         wavelength=wavelength,
@@ -925,9 +925,9 @@ def eq_qhorz(
     :return: component of the scattering vector along the horizontal direction in inverse nm
     """
     (
-        qsample_beam,
+        _qsample_beam,
         qsample_horz,
-        qsample_vert,
+        _qsample_vert,
     ) = q_sample(
         x=x,y=y,z=z,
         wavelength=wavelength,
@@ -960,8 +960,8 @@ def eq_qvert(
     :return: component of the scattering vector along the vertical direction in inverse nm
     """
     (
-        qsample_beam,
-        qsample_horz,
+        _qsample_beam,
+        _qsample_horz,
         qsample_vert,
     ) = q_sample(
         x=x,y=y,z=z,

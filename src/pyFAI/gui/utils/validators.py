@@ -161,7 +161,7 @@ class AdvancedDoubleValidator(DoubleValidator):
 
         if acceptable == qt.QValidator.Acceptable and self.__boundIncluded != (True, True):
             # Check boundaries
-            value, isValid = self.toValue(inputText)
+            _value, isValid = self.toValue(inputText)
             if not isValid:
                 acceptable = qt.QValidator.Intermediate
 

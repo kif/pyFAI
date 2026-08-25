@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import copy
@@ -94,15 +94,15 @@ class PeakPicker:
     Two methods can be used : massif or blob
     """
 
-    VALID_METHODS = ["massif", "blob", "watershed"]
+    VALID_METHODS = ("massif", "blob", "watershed")
 
-    help = ["Please select rings on the diffraction image. In parenthesis, some modified shortcuts for single button mouse (Apple):",
+    help = ("Please select rings on the diffraction image. In parenthesis, some modified shortcuts for single button mouse (Apple):",
             " * Right-click (click+n):         try an auto find for a ring",
             " * Right-click + Ctrl (click+b):  create new group with one point",
             " * Right-click + Shift (click+v): add one point to current group",
             " * Right-click + m (click+m):     find more points for current group",
             " * Center-click or (click+d):     erase current group",
-            " * Center-click + 1 or (click+1): erase closest point from current group"]
+            " * Center-click + 1 or (click+1): erase closest point from current group")
 
     def __init__(self, data, reconst=False, mask=None,
                  pointfile=None, calibrant=None, wavelength=None, detector=None,
@@ -447,7 +447,7 @@ class PeakPicker:
         :param callback:
         :return: list of control points
         """
-        logging.info(os.linesep.join(self.help))
+        logger.info(os.linesep.join(self.help))
         if callback:
             self.point_filename = filename
             # self.cb_refine = callback
@@ -483,7 +483,7 @@ class PeakPicker:
         :param data: 2darray with the 2theta values in radians...
         """
         if self.widget is None:
-            logging.warning("No diffraction image available => not showing the contour")
+            logger.warning("No diffraction image available => not showing the contour")
         else:
             tth_max = data.max()
             tth_min = data.min()
@@ -504,7 +504,7 @@ class PeakPicker:
         """
 
         if self.widget is None:
-            logging.error("No diffraction image available => not showing the contour")
+            logger.error("No diffraction image available => not showing the contour")
         else:
             self.widget.shadow(data)
 

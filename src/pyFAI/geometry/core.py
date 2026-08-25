@@ -39,10 +39,11 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 __docformat__ = "restructuredtext"
 
+from typing import ClassVar
 import copy
 import gc
 import json
@@ -137,7 +138,7 @@ class Geometry:
         "_transmission_normal",
         "auto_gc"
     )
-    PROMOTION = {
+    PROMOTION: ClassVar[dict] = {
         "AzimuthalIntegrator": "pyFAI.integrator.azimuthal.AzimuthalIntegrator",
         "FiberIntegrator": "pyFAI.integrator.fiber.FiberIntegrator",
         "GeometryRefinement": "pyFAI.geometryRefinement.GeometryRefinement",

@@ -30,14 +30,14 @@
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __docformat__ = 'restructuredtext'
 
 import collections
 import logging
 import pathlib
 import time
-from typing import TextIO
+from typing import ClassVar, TextIO
 
 import numpy
 
@@ -67,7 +67,7 @@ class PoniFile:
          and the sensor entry in the detector_config.
     """
     API_VERSION = 3  # valid version are 1, 2, 2.1, 3
-    ALLOWED_EXTRA = {"Calibrant", "Image"}  # extra information which is allowed to be stored in the poni file
+    ALLOWED_EXTRA: ClassVar[set] = {"Calibrant", "Image"}  # extra information which is allowed to be stored in the poni file
 
     def __init__(self, data=None, **kwargs) -> None:
         self._detector = None

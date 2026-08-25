@@ -36,7 +36,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "stable"
 
 import copy
@@ -61,7 +61,7 @@ class SensorMaterial:
     is able to produce the linear absorption coefficient for it as function
     of the considered energy.
     """
-    SCALES = {"cm":1,
+    SCALES: ClassVar[dict] = {"cm":1,
               "mm":0.1,
               "m":100,
               "µm":1e-4,

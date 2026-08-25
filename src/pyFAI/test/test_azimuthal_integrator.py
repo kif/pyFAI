@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import copy
 import gc
@@ -236,7 +236,7 @@ class TestAzimHalfFrelon(unittest.TestCase):
         rwp = mathutil.rwp((tth_cy, I_cy), (tth_np, I_np))
         logger.info("Histogram Cython/Numpy Rwp = %.3f", rwp)
         if logger.getEffectiveLevel() == logging.DEBUG:
-            logging.info("Plotting results")
+            logger.info("Plotting results")
             fig, sp = pylab.subplots()
             fig.suptitle(f'Numpy Histogram vs Cython: Rwp={rwp:.3f}')
             sp.plot(self.fit2d.T[0], self.fit2d.T[1], "-y", label='fit2d')

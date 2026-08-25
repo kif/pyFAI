@@ -27,7 +27,7 @@
 __author__ = "valentin.valls@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "10/10/2025"
+__date__ = "24/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -79,7 +79,7 @@ class TestUtilsString(unittest.TestCase):
 
 class TestToOrdinal(ParametricTestCase):
 
-    CASES = [
+    CASES = (
         (1, "1st"),
         (2, "2nd"),
         (3, "3rd"),
@@ -88,7 +88,7 @@ class TestToOrdinal(ParametricTestCase):
         (812, "812th"),
         (250, "250th"),
         (2071, "2071st"),
-    ]
+    )
 
     def test_ordinal(self):
         for value, expected in self.CASES:

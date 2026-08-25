@@ -29,7 +29,7 @@ __authors__ = ["Valentin Valls", "Jérôme Kieffer"]
 __contact__ = "valentin.valls@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/05/2026"
+__date__ = "25/08/2026"
 __status__ = "development"
 
 import collections
@@ -39,7 +39,7 @@ import warnings
 from copy import deepcopy
 from dataclasses import asdict, fields  # noqa
 from enum import IntEnum
-from typing import NamedTuple
+from typing import ClassVar, NamedTuple
 
 import numexpr
 import numpy
@@ -153,7 +153,7 @@ class ErrorModel(IntEnum):
 class _CopyableTuple(tuple):
     "Abstract class that can be copied using the copy module"
 
-    COPYABLE_ATTR = set()  # list of copyable attributes
+    COPYABLE_ATTR: ClassVar[set] = set()  # list of copyable attributes
 
     def __copy__(self):
         "Helper function for copy.copy()"
@@ -185,7 +185,7 @@ class IntegrateResult(_CopyableTuple):
     Class defining shared information between Integrate1dResult and Integrate2dResult.
     """
 
-    COPYABLE_ATTR = {
+    COPYABLE_ATTR: ClassVar[set] = {
         "_sum_signal",
         "_sum_variance",
         "_sum_normalization",
@@ -1019,7 +1019,7 @@ class SeparateResult(_CopyableTuple):
     * Shadow areas (signal < amorphous)
     """
 
-    COPYABLE_ATTR = {
+    COPYABLE_ATTR: ClassVar[set] = {
         "_radial",
         "_intensity",
         "_sigma",
@@ -1350,7 +1350,7 @@ class SeparateResult(_CopyableTuple):
 class SparseFrame(_CopyableTuple):
     """Result of the sparsification of a diffraction frame"""
 
-    COPYABLE_ATTR = {
+    COPYABLE_ATTR: ClassVar[set] = {
         "_shape",
         "_dtype",
         "_mask",

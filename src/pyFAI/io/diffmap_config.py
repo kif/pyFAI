@@ -30,7 +30,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/02/2026"
+__date__ = "24/08/2026"
 __status__ = "development"
 __docformat__ = 'restructuredtext'
 
@@ -40,12 +40,13 @@ import logging
 import os
 import posixpath
 from collections import namedtuple
+from typing import ClassVar
 
 import h5py
 import numpy
 
 from ._json import json_dumps
-from .integration_config import ClassVar, WorkerConfig, asdict, dataclass, fields
+from .integration_config import WorkerConfig, asdict, dataclass, fields
 from .nexus import is_hdf5
 from .tree import TreeItem
 
@@ -304,8 +305,8 @@ class DiffmapConfig:
 
 
     OPTIONAL: ClassVar[list] = []
-    GUESSED: ClassVar[list] = []
-    ENFORCED: ClassVar[list] = ["slow_motor", "fast_motor", "ai", "input_data"]
+    GUESSED: ClassVar[tuple] = ()
+    ENFORCED: ClassVar[tuple] = ("slow_motor", "fast_motor", "ai", "input_data")
     DEPRECATED: ClassVar[dict] = {
         "npt_fast": "fast_motor.points",
         "npt_slow": "slow_motor.points",

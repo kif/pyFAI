@@ -34,12 +34,13 @@ https://geoweb.princeton.edu/archival/duffy/xtalgeometry.pdf
 """
 
 from __future__ import annotations
+from typing import ClassVar
 
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/06/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import itertools
@@ -111,7 +112,7 @@ class Cell:
     http://geoweb3.princeton.edu/research/MineralPhy/xtalgeometry.pdf
     """
 
-    lattices = [
+    lattices = (
         "cubic",
         "tetragonal",
         "hexagonal",
@@ -119,8 +120,8 @@ class Cell:
         "orthorhombic",
         "monoclinic",
         "triclinic",
-    ]
-    types = {
+    )
+    types: ClassVar[dict] = {
         "P": "Primitive",
         "I": "Body centered",
         "F": "Face centered",

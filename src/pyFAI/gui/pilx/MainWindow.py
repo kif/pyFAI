@@ -470,7 +470,7 @@ class MainWindow(qt.QMainWindow):
         if self._integrated_plot_widget.getCurve(legend=legend):
             color = self._integrated_plot_widget.getCurve(legend=legend).getColor()
         else:
-            color, style = self._integrated_plot_widget._getColorAndStyle()
+            color, _style = self._integrated_plot_widget._getColorAndStyle()
         return color
 
     def setNewBackgroundCurve(self, x: float, y: float):

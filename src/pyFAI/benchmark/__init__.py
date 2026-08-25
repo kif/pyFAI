@@ -23,10 +23,11 @@
 "Benchmark for Azimuthal integration of PyFAI"
 
 __author__ = "Jérôme Kieffer"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __license__ = "MIT"
 __copyright__ = "2012-2026 European Synchrotron Radiation Facility, Grenoble, France"
 
+from typing import ClassVar
 import os
 import os.path as op
 import platform
@@ -222,7 +223,7 @@ class Bench:
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    LABELS = {("bbox", "histogram", "cython"): "CPU_serial",
+    LABELS: ClassVar[dict] = {("bbox", "histogram", "cython"): "CPU_serial",
               ("bbox", "lut", "cython"): "CPU_LUT_OpenMP",
               ("bbox", "lut", "opencl"): "LUT",
               ("bbox", "csr", "cython"): "CPU_CSR_OpenMP",
@@ -723,7 +724,7 @@ class Bench:
         self.ax.set_ylim(0.75 * self.plot_y_range[0],
                          1.5 * self.plot_y_range[1])
 
-        handles, labels = self.ax.get_legend_handles_labels()
+        handles, _labels = self.ax.get_legend_handles_labels()
         self.ax.legend(
             handles=handles,
             loc='center left',

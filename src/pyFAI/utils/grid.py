@@ -61,7 +61,7 @@ class Kabsch:
         P = numpy.ascontiguousarray(points, dtype=numpy.float64)
         if R.shape != P.shape:
             raise RuntimeError("reference and points size do not match")
-        size, ndim = R.shape
+        size, _ndim = R.shape
         centroid_P = P.mean(axis=0)
         centroid_R = R.mean(axis=0)
 

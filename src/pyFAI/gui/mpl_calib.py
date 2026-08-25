@@ -36,7 +36,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "08/10/2025"
+__date__ = "25/08/2026"
 __status__ = "development"
 
 import contextlib
@@ -266,9 +266,9 @@ class MplCalibWidget:
                 self.ax.set_xlim(xlim)
                 self.ax.set_ylim(ylim)
             except MemoryError:
-                logging.error("Sorry but your computer does NOT have enough memory to display the 2-theta contour plot")
+                logger.error("Sorry but your computer does NOT have enough memory to display the 2-theta contour plot")
             except ValueError:
-                logging.error("No contour-plot to display !")
+                logger.error("No contour-plot to display !")
         if update:
             self.update()
 

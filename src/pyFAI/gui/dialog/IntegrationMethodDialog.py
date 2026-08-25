@@ -24,8 +24,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 
+from typing import ClassVar
 from silx.gui import icons, qt
 
 import pyFAI.utils
@@ -37,7 +38,7 @@ class IntegrationMethodWidget(qt.QWidget):
     """Label displaying a specific OpenCL device.
     """
 
-    _HUMAN_READABLE = {
+    _HUMAN_READABLE: ClassVar[dict] = {
         "no": "No splitting",
         "bbox": "Bounding box",
         "pseudo": "Pseudo split",
@@ -51,14 +52,14 @@ class IntegrationMethodWidget(qt.QWidget):
         "opencl": "OpenCL",
     }
 
-    _IMAGE_DOC = {
+    _IMAGE_DOC: ClassVar[dict] = {
         "no": "pyfai:gui/images/pixelsplitting-no",
         "bbox": "pyfai:gui/images/pixelsplitting-bbox",
         "pseudo": "pyfai:gui/images/pixelsplitting-pseudo",
         "full": "pyfai:gui/images/pixelsplitting-full",
     }
 
-    _DESCRIPTION_DOC = {
+    _DESCRIPTION_DOC: ClassVar[dict] = {
         "no": "No pixel splitting. Each pixel contributes to a single bin of the result. No bin correlation but more noise",
         "bbox": "Split the bounding box corresponding to the pixel in the integrated geometry. The smoothest splitting, blurs a bit the signal",
         "pseudo": "Scale down the bounding box to the pixel area, before splitting. Good cost/precision compromise, similar to FIT2D",

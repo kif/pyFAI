@@ -199,7 +199,7 @@ class TestDiffmapConfig(unittest.TestCase):
         with open(fn, "w", encoding="utf-8") as w:
             w.write(test_data)
         dm = DiffMap()
-        opts, config = dm.parse(sysargv=["diffmap", "--config", fn], with_config=True)
+        _opts, config = dm.parse(sysargv=["diffmap", "--config", fn], with_config=True)
         parsed = DiffmapConfig.from_dict(self.inp)
         for field in fields(DiffmapConfig):
             value = config.__getattribute__(field.name)

@@ -28,10 +28,11 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __copyright__ = "2014-2023, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
+from typing import ClassVar
 import logging
 import math
 from collections import OrderedDict
@@ -56,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 class OCL_PeakFinder(OCL_CSR_Integrator):
     BLOCK_SIZE = 1024  # unlike in OCL_CSR_Integrator, here we need larger blocks
-    buffers = [BufferDescription("output", 1, numpy.float32, mf.READ_WRITE),
+    buffers = (BufferDescription("output", 1, numpy.float32, mf.READ_WRITE),
                BufferDescription("output4", 4, numpy.float32, mf.READ_WRITE),
                BufferDescription("tmp", 1, numpy.float32, mf.READ_WRITE),
                BufferDescription("image_raw", 1, numpy.int64, mf.READ_WRITE),
@@ -72,14 +73,14 @@ class OCL_PeakFinder(OCL_CSR_Integrator):
                BufferDescription("position", 1, numpy.int32, mf.READ_WRITE),
                BufferDescription("descriptor", 4, numpy.float32, mf.WRITE_ONLY),
                BufferDescription("radius2d", 1, numpy.float32, mf.READ_ONLY),
-               ]
-    kernel_files = ["silx:opencl/doubleword.cl",
+               )
+    kernel_files = ("silx:opencl/doubleword.cl",
                     "pyfai:openCL/preprocess.cl",
                     "pyfai:openCL/memset.cl",
                     "pyfai:openCL/ocl_azim_CSR.cl",
                     "pyfai:openCL/sparsify.cl",
                     "pyfai:openCL/peakfinder.cl",
-                    ]
+                    )
 
     def __init__(self, lut, image_size, checksum=None,
                  empty=None, unit=None, bin_centers=None,
@@ -797,15 +798,15 @@ class OCL_PeakFinder(OCL_CSR_Integrator):
 class OCL_SimplePeakFinder(OpenclProcessing):
     BLOCK_SIZE = 1024  # works with 32x32 patches (1024 threads)
 
-    kernel_files = ["pyfai:openCL/simple_peak_picker.cl"]
-    buffers = [BufferDescription("image", 1, numpy.float32, mf.READ_WRITE),
+    kernel_files = ("pyfai:openCL/simple_peak_picker.cl",)
+    buffers = (BufferDescription("image", 1, numpy.float32, mf.READ_WRITE),
                BufferDescription("image_raw", 1, numpy.float32, mf.READ_ONLY),
                BufferDescription("mask", 1, numpy.int8, mf.READ_ONLY),
                BufferDescription("output", 1, numpy.int32, mf.READ_WRITE),
                BufferDescription("peak_intensity", 1, numpy.float32, mf.WRITE_ONLY)
-               ]
+               )
 
-    mapping = {numpy.int8: "s8_to_float",
+    mapping: ClassVar[dict] = {numpy.int8: "s8_to_float",
                numpy.uint8: "u8_to_float",
                numpy.int16: "s16_to_float",
                numpy.uint16: "u16_to_float",
@@ -917,7 +918,7 @@ class OCL_SimplePeakFinder(OpenclProcessing):
         """
         # concatenate all needed source files into a single openCL module
         kernel_file = kernel_file or self.kernel_files[-1]
-        kernels = self.kernel_files[:-1] + [kernel_file]
+        kernels = [*self.kernel_files[:-1], kernel_file]
 
         try:
             compile_options = self.get_compiler_options(x87_volatile=True, apple_gpu=True)

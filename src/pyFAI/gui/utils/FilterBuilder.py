@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "24/08/2026"
 
 import collections
 import functools
@@ -36,7 +36,7 @@ class FilterBuilder:
     """
     Helper to create extension filters for file dialog
     """
-    COMPRESSED_IMAGE_EXTENSIONS = ["gz", "bz2"]
+    COMPRESSED_IMAGE_EXTENSIONS = ("gz", "bz2")
     """List of compressed file extension supported by fabio by default."""
 
     def __init__(self):

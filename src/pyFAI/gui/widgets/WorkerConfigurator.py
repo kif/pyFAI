@@ -32,9 +32,10 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
+from typing import ClassVar
 import logging
 import os.path
 
@@ -73,7 +74,7 @@ class WorkerConfigurator(qt.QWidget):
     """Frame displaying integration configuration which can be used as input
     param of the ~`pyFAI.worker.Worker`.
     """
-    INTEGRATOR_METHODS = {"integrate/average": "integrate1d_ng",
+    INTEGRATOR_METHODS: ClassVar[dict] = {"integrate/average": "integrate1d_ng",
                           "sigma-clip": "sigma_clip_ng",
                           "median-filter": "medfilt1d_ng"}
 

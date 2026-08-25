@@ -24,8 +24,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
+from typing import ClassVar
 import logging
 
 from silx.gui import qt
@@ -38,7 +39,7 @@ _logger = logging.getLogger(__name__)
 class MethodLabel(qt.QLabel):
     """Readonly line display"""
 
-    _HUMAN_READABLE = {
+    _HUMAN_READABLE: ClassVar[dict] = {
         "*": "Any",
         "any": "Any",
         "all": "Any",

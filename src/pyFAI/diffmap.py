@@ -501,12 +501,12 @@ If the number of files is too large, use double quotes like "*.edf" """
         if self.mask:
             process_grp["maskfile"] = self.mask
         if self.flat:
-            process_grp["flatfiles"] = numpy.array([i for i in self.flat], dtype=dtype)
+            process_grp["flatfiles"] = numpy.array(list(self.flat), dtype=dtype)
         if self.dark:
-            process_grp["darkfiles"] = numpy.array([i for i in self.dark], dtype=dtype)
+            process_grp["darkfiles"] = numpy.array(list(self.dark), dtype=dtype)
         if isinstance(self.poni, str) and os.path.exists(self.poni):
             process_grp["PONIfile"] = self.poni
-        process_grp["inputfiles"] = numpy.array([i for i in self.inputfiles], dtype=dtype)
+        process_grp["inputfiles"] = numpy.array(list(self.inputfiles), dtype=dtype)
 
         process_grp["dim0"] = self.nbpt_slow
         process_grp["dim0"].attrs["axis"] = self.slow_motor_name

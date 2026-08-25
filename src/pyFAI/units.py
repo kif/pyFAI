@@ -214,7 +214,7 @@ class Unit:
         if rad_unit is None:
             logger.error(
                 f"Unable to recognize this type unit '{obj}' of type {type(obj)}. "
-                f"Valid units are {', '.join([i for i in type_])}"
+                f"Valid units are {', '.join(list(type_))}"
             )
         return rad_unit
 

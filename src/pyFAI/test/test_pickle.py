@@ -83,7 +83,7 @@ class TestPickle(unittest.TestCase):
         ais = dumps(self.ai)
         newai = loads(ais)  # type: AzimuthalIntegrator
         self.assertEqual(newai._cached_array.keys(), self.ai._cached_array.keys())
-        for key in self.ai._cached_array.keys():
+        for key in self.ai._cached_array:
             if isinstance(self.ai._cached_array[key], numpy.ndarray):
                 self.assertEqual(abs(newai._cached_array[key] - self.ai._cached_array[key]).max(), 0,
                                  f"key {key} is the same")

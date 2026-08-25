@@ -565,7 +565,7 @@ class TestFiberIntegrator(unittest.TestCase):
             self.assertGreater(diff.max(), 6e-2)
 
     def test_equivalence_numpy_numexpr(self):
-        for unit_name in ANY_FIBER_UNITS.keys():
+        for unit_name in ANY_FIBER_UNITS:
             for so in range(1,9):
                 fiberunit = parse_fiber_unit(unit=unit_name, sample_orientation=so, incident_angle=0.2, tilt_angle=0.5)
                 self.fi.reset()

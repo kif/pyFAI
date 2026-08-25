@@ -242,7 +242,7 @@ class IntegrationMethod:
             return [cls._registry[method_nt]]
         # Validate on pixel splitting, implementation and algorithm
         if dim:
-            candidates = [i for i in cls._registry.keys() if i[0] == dim]
+            candidates = [i for i in cls._registry if i[0] == dim]
         else:
             candidates = cls._registry.keys()
         if split != "*":

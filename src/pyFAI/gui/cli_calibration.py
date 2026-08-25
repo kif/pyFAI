@@ -756,7 +756,7 @@ class AbstractCalibration:
             if action in ["help", "?"]:
                 req_help = True
             if req_help:
-                for what in self._HELP.keys():
+                for what in self._HELP:
                     if action.startswith(what):
                         print(f"Help on {what}")
                         print(self._HELP[what])
@@ -1366,7 +1366,7 @@ class AbstractCalibration:
                     logger.warning(err)
             defaults["detector"] = self.detector
         if self.ai:
-            for key in defaults.keys():  # not PARAMETERS which holds wavelength
+            for key in defaults:  # not PARAMETERS which holds wavelength
                 val = getattr(self.ai, key, None)
                 if val is not None:
                     defaults[key] = val

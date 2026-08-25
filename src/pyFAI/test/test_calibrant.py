@@ -375,7 +375,7 @@ class TestReflection(unittest.TestCase):
                 if nr in reflections:
                     ref = reflections[nr][()]
                 else:
-                    good = [i for i in reflections.keys() if i.startswith(nr+":")]
+                    good = [i for i in reflections if i.startswith(nr+":")]
                     if good:
                         ref = reflections[good[0]][()]
                 if "validated" in method.__doc__.lower() and not numpy.all(ref==table):

@@ -33,8 +33,15 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/10/2025"
+__date__ = "25/08/2026"
 __status__ = "stable"
+
+# The star-imports below are the public API aggregation mechanism: every
+# detector class must be reachable as `pyFAI.detectors.<Name>` and `__all__` is
+# built dynamically at the end of this module by introspecting the ~300 classes
+# they bring in. Listing them explicitly would have to be maintained by hand
+# for every new detector.
+# ruff: noqa: F403
 
 import inspect
 

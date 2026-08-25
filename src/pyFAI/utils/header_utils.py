@@ -127,7 +127,7 @@ def _get_monitor_value_from_hdf5(image, monitor_key):
     if monitor_dataset.dtype.kind not in "fiu":
         raise MonitorNotFound(f"Monitor path '{monitor_key}' does not contain a numerical value")
 
-    if monitor_dataset.shape == tuple():
+    if monitor_dataset.shape == ():
         # A constant monitor
         return monitor_dataset[()]
 

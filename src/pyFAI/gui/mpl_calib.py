@@ -310,7 +310,7 @@ class MplCalibWidget:
                 pt0y, pt0x = points[0]
                 annotate = self.ax.annotate(label, xy=(pt0x, pt0y), xytext=(pt0x + 10, pt0y + 10),
                                                     weight="bold", size="large", color="black",
-                                                    arrowprops=dict(facecolor='white', edgecolor='white'))
+                                                    arrowprops={"facecolor": 'white', "edgecolor": 'white'})
                 npl = numpy.array(points)
                 plot = self.ax.plot(npl[:, 1], npl[:, 0], "o", scalex=False, scaley=False, label=label)
                 self.points[label] = GroupOfPoints(annotate, plot)

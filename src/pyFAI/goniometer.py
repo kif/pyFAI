@@ -325,7 +325,7 @@ class ExtendedTransformation:
                           "q": CONST_q}
         if constants is not None:
             self.variables.update(constants)
-        self.param_names = tuple(param_names) if param_names is not None else tuple()
+        self.param_names = tuple(param_names) if param_names is not None else ()
         if pos_names is not None:
             self.pos_names = tuple(pos_names)
         else:

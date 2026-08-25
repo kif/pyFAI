@@ -73,7 +73,7 @@ class _Dectris(ModuleDetector):
     DUMMY = -2
     DELTA_DUMMY = 1.5
     ORIENTATION = 3 # should be 2, Personal communication from Dectris: origin top-left looking from the sample to the detector, thus flip-rl
-    SENSORS = tuple()
+    SENSORS = ()
 
     def __init__(self,
                  pixel1:float=75e-6,

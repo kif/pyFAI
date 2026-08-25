@@ -590,12 +590,12 @@ class BlobDetection:
                 pylab.annotate("",
                                xy=(x + vect[0][0] * val[0], y + vect[0][1] * val[0]),
                                xytext=(x, y),
-                               arrowprops=dict(facecolor='red', shrink=0.05))
+                               arrowprops={"facecolor": 'red', "shrink": 0.05})
 
                 pylab.annotate("",
                                xy=(x + vect[1][0] * val[1], y + vect[1][1] * val[1]),
                                xytext=(x, y),
-                               arrowprops=dict(facecolor='red', shrink=0.05))
+                               arrowprops={"facecolor": 'red', "shrink": 0.05})
                 pylab.plot(x, y, 'og')
                 vals.append(val)
                 vects.append(vect)
@@ -808,4 +808,4 @@ class BlobDetection:
 
         for i in range(self.keypoints.x.size):
             pylab.annotate("", xy=(nghx[i], nghy[i]),
-                           xytext=(self.keypoints.x[i], self.keypoints.y[i]), arrowprops=dict(facecolor='red', shrink=0.05),)
+                           xytext=(self.keypoints.x[i], self.keypoints.y[i]), arrowprops={"facecolor": 'red', "shrink": 0.05},)

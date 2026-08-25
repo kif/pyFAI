@@ -143,7 +143,7 @@ class ListModel(AbstractModel):
     if qt.BINDING in ["PyQt5", "PySide2"]:
         changed = qt.Signal([], [ChangeListEvent])
     else:
-        changed = qt.Signal(tuple(), (ChangeListEvent,))
+        changed = qt.Signal((), (ChangeListEvent,))
     """Emitted at the end of a structural change."""
 
     structureChanged = qt.Signal()

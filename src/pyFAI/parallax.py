@@ -341,7 +341,7 @@ class ThinSensor(BaseSensor):
         ax.annotate(f"$\\delta r$={maxi*1000:.3f}mm", (maxi, c[1][idx]),
                    xycoords='data',
                    xytext=(0.8, 0.5), textcoords='axes fraction',
-                   arrowprops=dict(facecolor='black', shrink=0.05),
+                   arrowprops={"facecolor": 'black', "shrink": 0.05},
                    horizontalalignment='right', verticalalignment='top',)
         ax.set_title(f"Profile {beam.profile}, width: {beam.width*1000}mm, angle: {180*angle/pi}°")
         ax.legend()

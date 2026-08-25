@@ -66,7 +66,7 @@ class ImXPadS10(ModuleDetector):
     force_pixel = True
     aliases = ("Imxpad S10",)
     uniform_pixel = False
-    SENSORS = tuple()
+    SENSORS = ()
 
     @classmethod
     def _calc_pixels_size(cls, length, module_size, pixel_size):

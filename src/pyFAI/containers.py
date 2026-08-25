@@ -1834,7 +1834,7 @@ class Reflection:
 
     dspacing: float = None
     intensity: float = None
-    hkl: tuple = tuple()  # or better Miller namedtuple
+    hkl: tuple = ()  # or better Miller namedtuple
     multiplicity: int = None
 
     @property

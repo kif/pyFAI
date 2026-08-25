@@ -79,8 +79,8 @@ except ImportError:
     logger.error("fabio module missing")
 
 
-__all__ = [get_isotime, from_isotime, is_hdf5, Nexus, h5py, save_NXcansas, save_NXmonpd,
-           "FabioWriter", "Writer", "HDF5Writer", "save_integrate_result" ]
+__all__ = ["get_isotime", "from_isotime", "is_hdf5", "Nexus", "h5py", "save_NXcansas",
+           "save_NXmonpd", "FabioWriter", "Writer", "HDF5Writer", "save_integrate_result"]
 
 # Activating compression has an important performance penalty and,
 # as we are saving Float32, the compression obtained is far from optimal

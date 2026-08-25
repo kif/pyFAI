@@ -191,4 +191,4 @@ def plot2d(result, calibrant=None, label=None, ax=None):
                 ax.add_line(line)
     return ax
 
-__all__ = [plot2d, plot1d, display]
+__all__ = ["plot2d", "plot1d", "display"]

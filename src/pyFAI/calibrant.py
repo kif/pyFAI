@@ -50,7 +50,7 @@ from .crystallography.cell import Cell
 from .crystallography.space_groups import ReflectionCondition
 
 __all__ = ["ALL_CALIBRANTS", "get_calibrant", "names",
-            CALIBRANT_FACTORY, Calibrant, Cell, ReflectionCondition]
+           "CALIBRANT_FACTORY", "Calibrant", "Cell", "ReflectionCondition"]
 
 ALL_CALIBRANTS = CALIBRANT_FACTORY
 

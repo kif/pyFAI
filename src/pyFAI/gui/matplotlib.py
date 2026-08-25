@@ -74,4 +74,4 @@ from matplotlib import (
 #differs from the silx one (no normalization)
 DEFAULT_MPL_COLORMAP = colors.Colormap(name="inferno")
 
-__all__ = [DEFAULT_MPL_COLORMAP, colors, pylab, pyplot, matplotlib, qt]
+__all__ = ["DEFAULT_MPL_COLORMAP", "colors", "pylab", "pyplot", "matplotlib", "qt"]

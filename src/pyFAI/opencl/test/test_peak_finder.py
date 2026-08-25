@@ -85,7 +85,7 @@ class TestOclPeakFinder(unittest.TestCase):
         msk = self.img < 0
         pf = OCL_SimplePeakFinder(mask=msk)
         res = pf(self.img, window=11)
-        s1 = set((i["x"], i["y"]) for i in self.ref)
+        s1 = {(i["x"], i["y"]) for i in self.ref}
         s2 = set(zip(res.x, res.y))
         self.assertGreater(len(s2), len(s1), "Many more peaks with default settings")
         self.assertFalse(bool(s1.difference(s1.intersection(s2))), "All peaks found")
@@ -103,7 +103,7 @@ class TestOclPeakFinder(unittest.TestCase):
         distance = self.ai._cached_array["r_center"]
         pf = OCL_PeakFinder(lut, self.img.size, unit=unit, radius=distance, bin_centers=bin_centers, mask=msk)
         res = pf(self.img, error_model="poisson", dummy=-1)
-        s1 = set((i["x"], i["y"]) for i in self.ref)
+        s1 = {(i["x"], i["y"]) for i in self.ref}
         s2 = set(zip(res.x, res.y))
         self.assertGreater(len(s2), len(s1), "Many more peaks with default settings")
         self.assertFalse(bool(s1.difference(s1.intersection(s2))), "All peaks found")
@@ -129,7 +129,7 @@ class TestOclPeakFinder(unittest.TestCase):
         pf = OCL_PeakFinder(lut, self.img.size, unit=unit, radius=distance, bin_centers=bin_centers, mask=msk,
                             block_size=1)
         res = pf(self.img, error_model="poisson", dummy=-1)
-        s1 = set((i["x"], i["y"]) for i in self.ref)
+        s1 = {(i["x"], i["y"]) for i in self.ref}
         s2 = set(zip(res.x, res.y))
         self.assertGreater(len(s2), len(s1), "Many more peaks with default settings")
         self.assertFalse(bool(s1.difference(s1.intersection(s2))), "All peaks found")
@@ -153,7 +153,7 @@ class TestOclPeakFinder(unittest.TestCase):
         distance = self.ai._cached_array["r_center"]
         pf = OCL_PeakFinder(lut, self.img.size, unit=unit, radius=distance, bin_centers=bin_centers, mask=msk)
         res = pf(self.img, error_model="poisson", dummy=-1, cutoff_clip=0)
-        s1 = set((i["x"], i["y"]) for i in self.ref)
+        s1 = {(i["x"], i["y"]) for i in self.ref}
         s2 = set(zip(res.x, res.y))
         self.assertGreater(len(s2), len(s1), "Many more peaks with default settings")
         self.assertFalse(bool(s1.difference(s1.intersection(s2))), "All peaks found")

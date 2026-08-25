@@ -636,7 +636,7 @@ class AbstractCalibration:
                     size2 = mask2.sum()
                 # length of the arc:
                 points = ms.find_pixels(tth[i])
-                seeds = set((i[0], i[1]) for i in points if mask2[i[0], i[1]])
+                seeds = {(i[0], i[1]) for i in points if mask2[i[0], i[1]]}
                 # max number of points: 360 points for a full circle
                 azimuthal = chia[points[:, 0].clip(0, self.peakPicker.data.shape[0]), points[:, 1].clip(0, self.peakPicker.data.shape[1])]
                 nb_deg_azim = numpy.unique(numpy.rad2deg(azimuthal).round()).size
@@ -1048,7 +1048,7 @@ class AbstractCalibration:
         else:
             print("chiplot display only possible with GUI")
         if rings is None:
-            rings = list(set(int(i[2]) for i in self.data))
+            rings = list({int(i[2]) for i in self.data})
             rings.sort()
         for ring in rings:
             ref_2th = numpy.rad2deg(self.calibrant.get_2th()[ring])
@@ -1298,7 +1298,7 @@ class AbstractCalibration:
         self.ai.rot3 = 0.0
 
         if how == "ring":
-            inner_ring = min(set(i[2] for i in self.data))
+            inner_ring = min({i[2] for i in self.data})
             print(f"inner ring: {inner_ring}")
             data = numpy.array([[i[0], i[1]] for i in self.data if i[2] == inner_ring])
             center = data.mean(axis=0)

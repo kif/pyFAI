@@ -162,7 +162,7 @@ class RingExtraction:
             pixels_at_two_theta_level = marching_squares_algorithm.find_pixels(
                 self.two_theta_values[ring_index]
             )
-            seeds = set((i[0], i[1]) for i in pixels_at_two_theta_level if final_mask[i[0], i[1]])
+            seeds = {(i[0], i[1]) for i in pixels_at_two_theta_level if final_mask[i[0], i[1]]}
 
             num_points_to_keep = self._calculate_num_of_points_to_keep(
                 pixels_at_two_theta_level, points_per_degree

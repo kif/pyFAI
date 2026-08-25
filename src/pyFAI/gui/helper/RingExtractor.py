@@ -416,7 +416,7 @@ class RingExtractorThread(qt.QThread):
                 # Coords in points are y, x
                 points = ms.find_pixels(tth[i])
 
-                seeds = set((i[0], i[1]) for i in points if mask2[i[0], i[1]])
+                seeds = {(i[0], i[1]) for i in points if mask2[i[0], i[1]]}
                 # Max number of points: 360 points for a full circle
                 azimuthal = chia[points[:, 0].clip(0, peakPicker.data.shape[0]), points[:, 1].clip(0, peakPicker.data.shape[1])]
                 nb_deg_azim = numpy.unique(numpy.rad2deg(azimuthal).round()).size

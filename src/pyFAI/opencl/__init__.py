@@ -35,7 +35,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2024 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "07/10/2025"
+__date__ = "25/08/2026"
 __status__ = "stable"
 
 import logging
@@ -60,12 +60,12 @@ else:
     from silx.opencl import common
     ocl = common.ocl    # /!\ lasy loading of ocl at the silx level !!!
     from silx.opencl.common import (
-        allocate_cl_buffers,
-        kernel_workgroup_size,
+        allocate_cl_buffers,  # noqa: F401
+        kernel_workgroup_size,  # noqa: F401
         measure_workgroup_size,  # noqa: F401
-        mf,
-        pyopencl,
-        release_cl_buffers,
+        mf,  # noqa: F401
+        pyopencl,  # noqa: F401
+        release_cl_buffers,  # noqa: F401
     )
 
     from .. import resources

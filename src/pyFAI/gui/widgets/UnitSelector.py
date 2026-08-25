@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 
 from silx.gui import qt
 
@@ -62,7 +62,7 @@ class UnitSelector(qt.QComboBox):
         # clean up
         self.clear()
 
-        units = sorted(list(units), key=lambda u: u.label)
+        units = sorted(units, key=lambda u: u.label)
 
         for unit in units:
             if self.__shortName:

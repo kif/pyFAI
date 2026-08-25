@@ -32,7 +32,12 @@ to the used backend.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "08/10/2025"
+__date__ = "25/08/2026"
+
+# The import order in this module is load-order critical (see the docstring):
+# `_check_matplotlib` must be evaluated before matplotlib is imported, and the
+# backend has to be selected before pulling in pylab/pyplot.
+# ruff: noqa: E402
 
 import logging
 import sys

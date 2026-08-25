@@ -1765,7 +1765,7 @@ class PeakPickingTask(AbstractCalibrationTask):
         elif role == self.EXTRACT_EXISTING:
             # Remove everything and recreate everything with the same name/color...
             ringNumbers = sorted(newPeaks.keys())
-            disabledRings = set(p.ringNumber() for p in peakSelectionModel if not p.isEnabled())
+            disabledRings = {p.ringNumber() for p in peakSelectionModel if not p.isEnabled()}
             peaks = [peakSelectionModel.peakFromRingNumber(n) for n in ringNumbers]
             peakSelectionModel.clear()
             for prevousRing in peaks:

@@ -297,7 +297,7 @@ class MarkerManager:
 
     def __findUnusedMarkerName(self):
         template = "mark%d"
-        markerNames = set(m.name() for m in self.__markerModel)
+        markerNames = {m.name() for m in self.__markerModel}
         for i in range(1000):
             name = template % i
             if name not in markerNames:

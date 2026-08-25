@@ -36,7 +36,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import logging
@@ -157,9 +157,7 @@ def build_geometry(config):
     mask = numpy.ones(detector.shape, numpy.int8)
 
     for name, module in config.items():
-        if isinstance(module, dict) and not (name.startswith("bad") or
-                                            name.startswith("group") or
-                                            name.startswith("rigid_group")) and ("corner_x" in module and
+        if isinstance(module, dict) and not name.startswith(("bad", "group", "rigid_group")) and ("corner_x" in module and
             "corner_y" in module and
             "fs"  in module and
             "ss"  in module and

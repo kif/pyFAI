@@ -24,7 +24,7 @@
 
 __authors__ = ["Valentin Valls", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 
 import logging
 
@@ -282,8 +282,8 @@ class ExperimentTask(AbstractCalibrationTask):
                 if not dspacing:
                     raise ValueError("the calibrant file is missing or contains no d-spacing")
             except Exception as error:
-                _logger.error("Selected calibrant could not be loaded: %s",
-                              calibrant.filename, exc_info=True)
+                _logger.exception("Selected calibrant could not be loaded: %s",
+                                  calibrant.filename)
                 # Ask the user whether to simply revert, or to also drop a
                 # user-added entry from the dropdown. "Remove" is offered only
                 # for user-added calibrants (a real filename, not a "pyfai:"

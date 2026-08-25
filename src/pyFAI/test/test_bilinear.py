@@ -31,7 +31,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 
 import logging
 import unittest
@@ -68,11 +68,11 @@ class TestBilinear(unittest.TestCase):
 
         for _s in range(self.N):
             i, j = int(self.rng.uniform(0, 100)), int(self.rng.uniform(0, 100))
-            k, l = b.local_maxi((i, j))
-            if abs(k - 40) > 1e-4 or abs(l - 60) > 1e-4:
-                logger.warning("Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+            p0, p1 = b.local_maxi((i, j))
+            if abs(p0 - 40) > 1e-4 or abs(p1 - 60) > 1e-4:
+                logger.warning("Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, p0, p1)
             else:
-                logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+                logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, p0, p1)
                 ok += 1
         logger.info("Success rate: %.1f", 100.0 * ok / self.N)
         self.assertEqual(ok, self.N, "Maximum is always found")
@@ -88,11 +88,11 @@ class TestBilinear(unittest.TestCase):
         ok = 0
         for _s in range(self.N):
             i, j = int(self.rng.uniform(0,100)), int(self.rng.uniform(0,100))
-            k, l = b.local_maxi((i, j))
-            if abs(k - 40.5) > 0.5 or abs(l - 60.5) > 0.5:
-                logger.warning("Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+            p0, p1 = b.local_maxi((i, j))
+            if abs(p0 - 40.5) > 0.5 or abs(p1 - 60.5) > 0.5:
+                logger.warning("Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, p0, p1)
             else:
-                logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+                logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, p0, p1)
                 ok += 1
         logger.info("Success rate: %.1f", 100.0 * ok / self.N)
         self.assertEqual(ok, self.N, "Maximum is always found")

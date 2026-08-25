@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __satus__ = "production"
 
 import collections
@@ -696,7 +696,7 @@ def process(input_data, output, config, observer, write_mode=HDF5Writer.MODE_ERR
             entry_path = None
         if os.path.isdir(output):
             writer = MultiFileWriter(output, mode=write_mode)
-        elif output.endswith(".h5") or output.endswith(".hdf5") or format_ in ("h5", "hdf5"):
+        elif output.endswith((".h5", ".hdf5")) or format_ in ("h5", "hdf5"):
             writer = HDF5Writer(output, hpath=entry_path, append_frames=True, mode=write_mode)
         else:
             output_path = os.path.abspath(output)

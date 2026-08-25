@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import html
 import logging
@@ -88,11 +88,11 @@ class DetectorLabel(qt.QLabel):
             path = urls[0].toLocalFile()
             detector = pyFAI.detectors.detector_factory(path)
         except OSError as e:
-            _logger.error("Error while loading dropped URL %s", e, exc_info=True)
+            _logger.exception("Error while loading dropped URL %s", e)
             qt.QMessageBox.critical(self, "Drop cancelled", str(e))
             return
         except Exception as e:
-            _logger.error("Error while reading dropped URL %s", e, exc_info=True)
+            _logger.exception("Error while reading dropped URL %s", e)
             qt.QMessageBox.critical(self, "Drop cancelled", str(e))
             return
 

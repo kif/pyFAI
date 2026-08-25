@@ -1791,7 +1791,7 @@ class Miller(NamedTuple):
 
     h: int
     k: int
-    l: int
+    l: int  # noqa: E741 (third Miller index)
 
     def __repr__(self):
         return f"Miller({self.h}, {self.k}, {self.l})"

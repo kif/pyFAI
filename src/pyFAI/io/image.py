@@ -31,7 +31,7 @@ __author__ = "Valentin Valls"
 __contact__ = "jerome.kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/12/2024"
+__date__ = "25/08/2026"
 __status__ = "development"
 
 
@@ -55,7 +55,7 @@ def read_data(image_path):
     if os.path.exists(image_path):
         with fabio.open(image_path) as image:
             data = image.data
-    elif image_path.startswith("silx:") or image_path.startswith("fabio:"):
+    elif image_path.startswith(("silx:", "fabio:")):
         data = silx.io.get_data(image_path)
     elif "::" in image_path:
         # Could be a fabio path

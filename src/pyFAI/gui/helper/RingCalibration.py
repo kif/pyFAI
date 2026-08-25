@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import collections
 import logging
@@ -128,7 +128,7 @@ class GeometryRefinementContext:
         try:
             deltaS = self.__geoRef.refine3(maxiter, self.__fixed)
         except Exception:
-            _logger.error("Error while refining the geometry", exc_info=True)
+            _logger.exception("Error while refining the geometry")
             return inf
         else:
             return deltaS
@@ -158,7 +158,7 @@ class RingCalibration:
         try:
             self.__init(peaks, method)
         except Exception as error:
-            _logger.error("Error while initializing the calibration", exc_info=True)
+            _logger.exception("Error while initializing the calibration")
             self.__isValid = False
             self.__initError = str(error)
 

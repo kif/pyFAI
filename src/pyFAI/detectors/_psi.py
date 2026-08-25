@@ -33,7 +33,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2021-2025 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import logging
@@ -329,7 +329,7 @@ class Jungfrau_16M_cor(Jungfrau):
                 else:
                     val = [val]
                 key = m.group('par')
-                if key.startswith("min_") or key.startswith("max_"):
+                if key.startswith(("min_", "max_")):
                     mod_data[key] = int(val[0])
                 elif key.startswith("corner"):
                     mod_data[key] = float(val[0])

@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import logging
 
@@ -87,7 +87,7 @@ class RingExtractorThread(qt.QThread):
         try:
             result = self.runProcess()
         except Exception as e:
-            _logger.error("Backtrace", exc_info=True)
+            _logger.exception("Backtrace")
             self.__error = str(e)
             self.__isAborted = True
         else:

@@ -63,4 +63,4 @@ load = NexusDetector.sload
 
 # Expose all the classes, else it is not part of the documentation
 _detector_class_names = [i[0] for i in locals().items() if inspect.isclass(i[1]) and issubclass(i[1], Detector)]
-__all__ = _detector_class_names + ["ALL_DETECTORS", "detector_factory", "load"]
+__all__ = _detector_class_names + ["ALL_DETECTORS", "detector_factory", "load"]  # noqa: PLE0605

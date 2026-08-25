@@ -36,7 +36,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import logging
@@ -74,21 +74,17 @@ class CalibrantFactory:
             self.all = {}
         else:
             if basedir is None:
-                self.all = dict(
-                    [
-                        (os.path.splitext(i)[0], f"pyfai:{os.path.splitext(i)[0]}")
+                self.all = {
+                    os.path.splitext(i)[0]: f"pyfai:{os.path.splitext(i)[0]}"
                         for i in os.listdir(self.directory)
                         if i.endswith(".D")
-                    ]
-                )
+                }
             else:
-                self.all = dict(
-                    [
-                        (os.path.splitext(i)[0], os.path.join(self.directory, i))
+                self.all = {
+                    os.path.splitext(i)[0]: os.path.join(self.directory, i)
                         for i in os.listdir(self.directory)
                         if i.endswith(".D")
-                    ]
-                )
+                }
 
     def __call__(self, calibrant_name:str) -> Calibrant:
         """Returns a new instance of a calibrant by it's name.

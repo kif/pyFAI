@@ -169,7 +169,7 @@ class MethodLabel(qt.QLabel):
                                                                   algo=algo,
                                                                   impl=impl,
                                                                   degradable=False)
-        dimensions = set(m.dimension for m in methods)
+        dimensions = {m.dimension for m in methods}
 
         if dimensions == {1, 2}:
             availability = "1D and 2D"

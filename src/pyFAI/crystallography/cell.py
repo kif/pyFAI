@@ -287,7 +287,7 @@ class Cell:
         """
         self = cls.cubic(a, lattice_type="F")
         self.selection_rules.append(
-            lambda h, k, l: not (
+            lambda h, k, l: not (  # noqa: E741
                 (h % 2 == 0)
                 and (k % 2 == 0)
                 and (l % 2 == 0)
@@ -331,7 +331,7 @@ class Cell:
         :param hkl: 3-tuple of integers
         :return: the inter-planar distance in Angstrom
         """
-        h, k, l = hkl
+        h, k, l = hkl  # noqa: E741
         deg2rad = pi / 180.0
         if self.lattice in ["cubic", "tetragonal", "orthorhombic"]:
             invd2 = (h / self.a) ** 2 + (k / self.b) ** 2 + (l / self.c) ** 2

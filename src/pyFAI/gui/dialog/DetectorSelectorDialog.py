@@ -24,7 +24,7 @@
 
 __authors__ = ["Valentin Valls", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import logging
 import os
@@ -499,7 +499,7 @@ class DetectorSelectorDrop(qt.QWidget):
 
         hasOther = None in manufacturers
         manufacturers.remove(None)
-        manufacturers = sorted(list(manufacturers))
+        manufacturers = sorted(manufacturers)
 
         model = qt.QStandardItemModel()
 

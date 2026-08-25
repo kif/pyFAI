@@ -32,7 +32,7 @@ Deprecated ... restore or delete !
 
 __authors__ = ["Jérôme Kieffer", "Giannis Ashiotis"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 __copyright__ = "2014, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -164,7 +164,8 @@ class OCLFullSplit1d:
                 kernel_file = get_cl_file("pyfai:openCL/" + kernel_name)
         else:
             kernel_file = str(kernel_file)
-        kernel_src = open(kernel_file).read()
+        with open(kernel_file) as fd:
+            kernel_src = fd.read()
         compile_options = f"-D BINS={int(self.bins)} -D POS_SIZE={self.pos_size} -D SIZE={int(self.size)} -D WORKGROUP_SIZE={self.workgroup_size} -D EPS={numpy.finfo(numpy.float32).eps:e}"
         logger.info("Compiling file %s with options %s", kernel_file, compile_options)
         try:

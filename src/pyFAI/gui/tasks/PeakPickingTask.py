@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 
 import functools
 import logging
@@ -1754,7 +1754,7 @@ class PeakPickingTask(AbstractCalibrationTask):
         role = thread.userData("ROLE")
         if role == self.EXTRACT_ALL:
             # Remove everything and recreate everything
-            disabledRings = set([p.ringNumber() for p in peakSelectionModel if not p.isEnabled()])
+            disabledRings = {p.ringNumber() for p in peakSelectionModel if not p.isEnabled()}
             peakSelectionModel.clear()
             for ringNumber in sorted(newPeaks.keys()):
                 coords = newPeaks[ringNumber]
@@ -1765,7 +1765,7 @@ class PeakPickingTask(AbstractCalibrationTask):
         elif role == self.EXTRACT_EXISTING:
             # Remove everything and recreate everything with the same name/color...
             ringNumbers = sorted(newPeaks.keys())
-            disabledRings = set([p.ringNumber() for p in peakSelectionModel if not p.isEnabled()])
+            disabledRings = set(p.ringNumber() for p in peakSelectionModel if not p.isEnabled())
             peaks = [peakSelectionModel.peakFromRingNumber(n) for n in ringNumbers]
             peakSelectionModel.clear()
             for prevousRing in peaks:

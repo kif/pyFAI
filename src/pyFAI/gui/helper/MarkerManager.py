@@ -24,7 +24,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/08/2026"
+__date__ = "25/08/2026"
 
 import functools
 import logging
@@ -297,7 +297,7 @@ class MarkerManager:
 
     def __findUnusedMarkerName(self):
         template = "mark%d"
-        markerNames = set([m.name() for m in self.__markerModel])
+        markerNames = set(m.name() for m in self.__markerModel)
         for i in range(1000):
             name = template % i
             if name not in markerNames:

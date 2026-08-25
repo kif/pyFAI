@@ -30,7 +30,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "development"
 
 import copy
@@ -836,43 +836,43 @@ class GeometryRefinement(AzimuthalIntegrator):
         """
         run roca to optimise the parameter set
         """
-        tmpf = tempfile.NamedTemporaryFile()
-        for line in self.data:
-            tmpf.write(f"{line[2]} {line[0]} {line[1]} {os.linesep}")
-        tmpf.flush()
-        roca = subprocess.Popen(
-            [
-                ROCA,
-                "debug=8",
-                "maxdev=1",
-                "input=" + tmpf.name,
-                str(self.pixel1),
-                str(self.pixel2),
-                str(self.poni1 / self.pixel1),
-                str(self.poni2 / self.pixel2),
-                str(self.dist),
-                str(self.rot1),
-                str(self.rot2),
-                str(self.rot3),
-            ],
-            stdout=subprocess.PIPE,
-        )
-        new_param = [self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3]
-        for line in roca.stdout:
-            word = line.split()
-            if len(word) == 3:
-                if word[0] == "cen1":
-                    new_param[1] = float(word[1]) * self.pixel1
-                if word[0] == "cen2":
-                    new_param[2] = float(word[1]) * self.pixel2
-                if word[0] == "dis":
-                    new_param[0] = float(word[1])
-                if word[0] == "rot1":
-                    new_param[3] = float(word[1])
-                if word[0] == "rot2":
-                    new_param[4] = float(word[1])
-                if word[0] == "rot3":
-                    new_param[5] = float(word[1])
+        with tempfile.NamedTemporaryFile() as tmpf:
+            for line in self.data:
+                tmpf.write(f"{line[2]} {line[0]} {line[1]} {os.linesep}")
+            tmpf.flush()
+            roca = subprocess.Popen(
+                [
+                    ROCA,
+                    "debug=8",
+                    "maxdev=1",
+                    "input=" + tmpf.name,
+                    str(self.pixel1),
+                    str(self.pixel2),
+                    str(self.poni1 / self.pixel1),
+                    str(self.poni2 / self.pixel2),
+                    str(self.dist),
+                    str(self.rot1),
+                    str(self.rot2),
+                    str(self.rot3),
+                ],
+                stdout=subprocess.PIPE,
+            )
+            new_param = [self.dist, self.poni1, self.poni2, self.rot1, self.rot2, self.rot3]
+            for line in roca.stdout:
+                word = line.split()
+                if len(word) == 3:
+                    if word[0] == "cen1":
+                        new_param[1] = float(word[1]) * self.pixel1
+                    if word[0] == "cen2":
+                        new_param[2] = float(word[1]) * self.pixel2
+                    if word[0] == "dis":
+                        new_param[0] = float(word[1])
+                    if word[0] == "rot1":
+                        new_param[3] = float(word[1])
+                    if word[0] == "rot2":
+                        new_param[4] = float(word[1])
+                    if word[0] == "rot3":
+                        new_param[5] = float(word[1])
         print(
             f"Roca {self.chi2() / self.data.shape[0]} --> {self.chi2(new_param) / self.data.shape[0]}"
         )

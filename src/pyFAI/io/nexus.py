@@ -30,7 +30,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2026"
+__date__ = "25/08/2026"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 
@@ -172,7 +172,9 @@ class Nexus:
                 self.mode = "a"
 
         if not pure and self.mode == "r" and h5py.version.version_tuple >= (2, 9):
-            self.file_handle = open(self.filename, mode=self.mode + "b")
+            # long-lived handle: owned by h5py for the lifetime of this Nexus
+            # object and closed in `close()`, so no context manager here.
+            self.file_handle = open(self.filename, mode=self.mode + "b")  # noqa: SIM115
             self.h5 = h5py.File(self.file_handle, mode=self.mode)
         else:
             self.file_handle = None

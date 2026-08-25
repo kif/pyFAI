@@ -266,9 +266,11 @@ class Bench:
             if os.name == "nt":
                 self._cpu = platform.processor()
             elif os.path.exists("/proc/cpuinfo"):
-                cpuinfo = [i.split(": ", 1)[1] for i in open("/proc/cpuinfo") if i.startswith("model name")]
+                with open("/proc/cpuinfo") as fd:
+                    lines = fd.readlines()
+                cpuinfo = [i.split(": ", 1)[1] for i in lines if i.startswith("model name")]
                 if not cpuinfo:
-                    cpuinfo = [i.split(": ", 1)[1] for i in open("/proc/cpuinfo") if i.startswith("cpu")]
+                    cpuinfo = [i.split(": ", 1)[1] for i in lines if i.startswith("cpu")]
                 if not cpuinfo:
                     self._cpu = "cpu"
                 else:
@@ -298,14 +300,15 @@ class Bench:
         """
         Returns the occupied memory for memory-leak hunting in MByte
         """
+        mem = 0
         pid = os.getpid()
         status_file = f"/proc/{pid}/status"
         if os.path.exists(status_file):
-            for line in open(status_file):
-                if line.startswith("VmRSS"):
-                    mem = int(line.split(":", 1)[1].split()[0]) / 1024.
-        else:
-            mem = 0
+            with open(status_file) as fd:
+                for line in fd:
+                    if line.startswith("VmRSS"):
+                        mem = int(line.split(":", 1)[1].split()[0]) / 1024.
+                        break
         return mem
 
     def get_env(self):

@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2026"
+__date__ = "26/08/2026"
 __status__ = "stable"
 
 import copy
@@ -1601,8 +1601,8 @@ def _ensure_dict(dico_or_str:str|dict)-> dict:
     else:
         try:
             config = json.loads(dico_or_str)
-        except Exception as err:  # IGNORE:W0703:
-            logger.exception(f"Unable to parse config `{config}` as JSON.\n{type(err).__name__}: {err}")
+        except Exception:  # IGNORE:W0703:
+            logger.exception(f"Unable to parse config `{dico_or_str}` as JSON dict.")
             raise
     return config
 

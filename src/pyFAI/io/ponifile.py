@@ -1,4 +1,3 @@
-# coding: utf-8
 #
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
@@ -31,18 +30,20 @@
 __author__ = "Jérôme Kieffer"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "10/04/2026"
+__date__ = "25/08/2026"
 __docformat__ = 'restructuredtext'
 
 import collections
-import time
-import pathlib
 import logging
+import pathlib
+import time
+from typing import ClassVar, TextIO
+
 import numpy
-from typing import TextIO
-from ._json import json_dumps
+
 from .. import detectors
 from ..utils import decorators
+from ._json import json_dumps
 
 try:
     from ..gui.model.GeometryModel import GeometryModel
@@ -66,7 +67,7 @@ class PoniFile:
          and the sensor entry in the detector_config.
     """
     API_VERSION = 3  # valid version are 1, 2, 2.1, 3
-    ALLOWED_EXTRA = {"Calibrant", "Image"}  # extra information which is allowed to be stored in the poni file
+    ALLOWED_EXTRA: ClassVar[set] = {"Calibrant", "Image"}  # extra information which is allowed to be stored in the poni file
 
     def __init__(self, data=None, **kwargs) -> None:
         self._detector = None
@@ -102,17 +103,15 @@ class PoniFile:
         """Checks the equality of two ponifile instances"""
         if not isinstance(other, self.__class__):
             return False
-        if ((self._detector != other._detector) or
-            (self._dist != other._dist) or
-            (self._poni1 != other._poni1) or
-            (self._poni2 != other._poni2) or
-            (self._rot1 != other._rot1) or
-            (self._rot2 != other._rot2) or
-            (self._rot3 != other._rot3) or
-            (self._wavelength != other._wavelength) or
-            (self._parallax != other._parallax)):
-            return False
-        return True
+        return ((self._detector == other._detector) and
+                (self._dist == other._dist) and
+                (self._poni1 == other._poni1) and
+                (self._poni2 == other._poni2) and
+                (self._rot1 == other._rot1) and
+                (self._rot2 == other._rot2) and
+                (self._rot3 == other._rot3) and
+                (self._wavelength == other._wavelength) and
+                (self._parallax == other._parallax))
 
     def make_headers(self, type_:str="list"):
         "Generate a header for files, as list or dict or str"
@@ -204,9 +203,8 @@ class PoniFile:
                     if "pixelsize2" in config:
                         self._detector.pixel2 = float(config["pixelsize2"])
 
-            if "splinefile" in config:
-                if config["splinefile"].lower() != "none":
-                    self._detector.splinefile = config["splinefile"]
+            if "splinefile" in config and config["splinefile"].lower() != "none":
+                self._detector.splinefile = config["splinefile"]
 
         elif version >=2:
                 detector_name = config["detector"]

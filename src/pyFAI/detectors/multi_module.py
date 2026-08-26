@@ -1,5 +1,4 @@
 # !/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
@@ -38,18 +37,19 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "13/01/2026"
+__date__ = "25/08/2026"
 __status__ = "development"
 
-from math import sin, cos, pi
 from dataclasses import dataclass
+from math import cos, pi, sin
+
 import numpy
 from scipy import ndimage, optimize
+
 from ..control_points import ControlPoints
 from ..ext import _geometry
 from ..io.ponifile import PoniFile
 from ..third_party.classproperties import classproperty
-
 
 module_d = numpy.dtype(
     [
@@ -193,8 +193,8 @@ class MultiModule:
             raise RuntimeError("`detector` must provide an actual mask")
         self.detector = detector
         self.build_labels()
-        for l in range(1, self.nb_modules + 1):  # noqa: E741
-            self.modules[l] = SingleModule(detector, self.lmask, index=l, fixed=False)
+        for module_id in range(1, self.nb_modules + 1):
+            self.modules[module_id] = SingleModule(detector, self.lmask, index=module_id, fixed=False)
         return self
 
     @property
@@ -206,8 +206,8 @@ class MultiModule:
         p1 /= self.detector.pixel1
         p2 /= self.detector.pixel2
 
-        for l in range(1, self.nb_modules + 1):  # noqa: E741
-            m = self.modules[l]
+        for module_id in range(1, self.nb_modules + 1):
+            m = self.modules[module_id]
             mp1, mp2 = m.calc_displacement_map()
             p1[m.mask] = mp1[m.mask]
             p2[m.mask] = mp2[m.mask]
@@ -234,9 +234,9 @@ class MultiModuleRefinement(MultiModule):
         p2 = mcp.d1.copy()
         param_idx = 0
         center = 0.5 if center else 0
-        for l in range(1, self.nb_modules + 1):  # noqa: E741
-            m = self.modules[l]
-            mask = mcp.module == l
+        for module_id in range(1, self.nb_modules + 1):
+            m = self.modules[module_id]
+            mask = mcp.module == module_id
             valid = mcp[mask]
             sub_param = (
                 None
@@ -257,8 +257,8 @@ class MultiModuleRefinement(MultiModule):
         else:
             print(filename, ":", self.calibrants.get(filename))
             modulated_cp = self.modulated_points[filename]
-            for l in range(1, self.nb_modules + 1):  # noqa: E741
-                print(l, (modulated_cp.module == l).sum())
+            for module_id in range(1, self.nb_modules + 1):
+                print(module_id, (modulated_cp.module == module_id).sum())
 
     def load_control_points(self, filename, poni=None, verbose=False):
         """

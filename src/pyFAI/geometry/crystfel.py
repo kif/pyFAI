@@ -1,5 +1,4 @@
 # !/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
@@ -37,14 +36,17 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "23/09/2025"
+__date__ = "25/08/2026"
 __status__ = "production"
 
 import logging
+
 import numpy
+
+from .. import load
 from ..detectors import detector_factory
 from ..units import hc
-from .. import load
+
 logger = logging.getLogger(__name__)
 
 
@@ -109,14 +111,13 @@ def build_detector(config):
                                              "orientation":3})
     mask = numpy.zeros(detector.shape, numpy.int8)
     for name, module in config.items():
-        if isinstance(module, dict) and name.startswith("bad"):
-            if "min_fs" in module and \
+        if isinstance(module, dict) and name.startswith("bad") and "min_fs" in module and \
                "min_ss" in module and \
                "max_fs" in module and \
                "max_ss" in module:
-                fs_slice = slice(int(module["min_fs"]), int(module["max_fs"]) + 1)
-                ss_slice = slice(int(module["min_ss"]), int(module["max_ss"]) + 1)
-                mask[ss_slice, fs_slice] = 1
+            fs_slice = slice(int(module["min_fs"]), int(module["max_fs"]) + 1)
+            ss_slice = slice(int(module["min_ss"]), int(module["max_ss"]) + 1)
+            mask[ss_slice, fs_slice] = 1
     detector.mask = mask
     return detector
 
@@ -156,42 +157,39 @@ def build_geometry(config):
     mask = numpy.ones(detector.shape, numpy.int8)
 
     for name, module in config.items():
-        if isinstance(module, dict) and not (name.startswith("bad") or
-                                            name.startswith("group") or
-                                            name.startswith("rigid_group")):
-            if ("corner_x" in module and
-                "corner_y" in module and
-                "fs"  in module and
-                "ss"  in module and
-                "min_ss" in module and
-                "min_fs" in module and
-                "max_ss" in module and
-                "max_fs" in module):
+        if isinstance(module, dict) and not name.startswith(("bad", "group", "rigid_group")) and ("corner_x" in module and
+            "corner_y" in module and
+            "fs"  in module and
+            "ss"  in module and
+            "min_ss" in module and
+            "min_fs" in module and
+            "max_ss" in module and
+            "max_fs" in module):
 
-                sl = (slice(int(module["min_ss"]), int(module["max_ss"] + 1)),
-                      slice(int(module["min_fs"]), int(module["max_fs"] + 1)))
-                fs = numpy.outer(numpy.ones(sl[0].stop - sl[0].start),
-                                 numpy.arange(sl[1].stop - sl[1].start))
-                ss = numpy.outer(numpy.arange(sl[0].stop - sl[0].start),
-                                 numpy.ones(sl[1].stop - sl[1].start))
+            sl = (slice(int(module["min_ss"]), int(module["max_ss"] + 1)),
+                  slice(int(module["min_fs"]), int(module["max_fs"] + 1)))
+            fs = numpy.outer(numpy.ones(sl[0].stop - sl[0].start),
+                             numpy.arange(sl[1].stop - sl[1].start))
+            ss = numpy.outer(numpy.arange(sl[0].stop - sl[0].start),
+                             numpy.ones(sl[1].stop - sl[1].start))
 
-                x[sl] += module["corner_x"]
-                y[sl] += module["corner_y"]
+            x[sl] += module["corner_x"]
+            y[sl] += module["corner_y"]
 
-                f = {}
-                s = {}
-                for i in module["fs"].split():
-                    f.update(coord(i))
-                for i in module["ss"].split():
-                    s.update(coord(i))
+            f = {}
+            s = {}
+            for i in module["fs"].split():
+                f.update(coord(i))
+            for i in module["ss"].split():
+                s.update(coord(i))
 
-                rotatation = numpy.array([[f.get("x", 0.0), f.get("y", 0.0)],
-                                          [s.get("x", 0.0), s.get("y", 0.0)]])
-                inv_rotation = numpy.linalg.inv(rotatation)
+            rotatation = numpy.array([[f.get("x", 0.0), f.get("y", 0.0)],
+                                      [s.get("x", 0.0), s.get("y", 0.0)]])
+            inv_rotation = numpy.linalg.inv(rotatation)
 
-                x[sl] += inv_rotation[0, 0] * fs + inv_rotation[0, 1] * ss
-                y[sl] += inv_rotation[1, 0] * fs + inv_rotation[1, 1] * ss
-                mask[sl] = 0
+            x[sl] += inv_rotation[0, 0] * fs + inv_rotation[0, 1] * ss
+            y[sl] += inv_rotation[1, 0] * fs + inv_rotation[1, 1] * ss
+            mask[sl] = 0
     xmin = x.min()
     ymin = y.min()
     detector.mask = numpy.logical_or(detector.mask, mask)

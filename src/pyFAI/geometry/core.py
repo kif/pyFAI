@@ -2656,12 +2656,18 @@ class Geometry:
     def __eq__(self, other):
         """Checks two geometries are equivalent.
 
+        Nota: the detector orientation needs not be listed here, it is covered
+        by the comparison of the detectors themselves since `Detector.__eq__`
+        already includes it.
+
         Typing will wait python 3.14"""
-        for key in self._IMMUTABLE_ATTRS+("parallax","detector", "orientation"):
+        for key in self._IMMUTABLE_ATTRS+("parallax", "detector"):
+            # A missing attribute on `self` is a bug and must not be silenced,
+            # while `other` may be any object and then simply differs.
+            here = self.__getattribute__(key)
             try:
-                here =  self.__getattribute__(key)
                 there = other.__getattribute__(key)
-            except Exception:
+            except AttributeError:
                 return False
             if here != there:
                 return False

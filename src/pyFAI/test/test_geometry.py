@@ -35,6 +35,7 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "28/08/2026"
 
+import copy
 import itertools
 import json
 import logging
@@ -619,6 +620,21 @@ class TestBugRegression(unittest.TestCase):
         delta_array = self.geo.delta_array(unit="chi_rad")
         self.assertLess(delta_array.max(), numpy.pi, "delta_array is less than pi")
         self.assertTrue(numpy.allclose(delta_array, deltaChi, atol=7e-6), "delta_array matches deltaChi")
+
+    def test_equality(self):
+        """`__eq__` used to compare an `orientation` attribute which `Geometry`
+        does not have: the AttributeError was silenced by a bare `except` and
+        every comparison returned False, even between identical geometries."""
+        kwargs = {"dist": 0.1, "poni1": 0.005, "poni2": 0.005,
+                  "detector": "Imxpad S10", "wavelength": 1e-10}
+        geo1 = geometry.Geometry(**kwargs)
+        self.assertEqual(geo1, geometry.Geometry(**kwargs), "identical geometries are equal")
+        self.assertEqual(geo1, copy.deepcopy(geo1), "deepcopy equals the original")
+        self.assertNotEqual(geo1, geometry.Geometry(**dict(kwargs, dist=0.2)),
+                            "geometries with a different distance differ")
+        self.assertNotEqual(geo1, geometry.Geometry(**dict(kwargs, detector="Pilatus100k")),
+                            "geometries with a different detector differ")
+        self.assertNotEqual(geo1, "not a geometry", "comparison with another type is False")
 
     def test_bug2679(self):
         ai = load({"dist":0.1, "rot1":0.1, "detector":"Pilatus100k"})

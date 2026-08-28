@@ -49,7 +49,11 @@ def run_notebook(fn):
                            fn], capture_output=True)
     if proc.returncode != 0:
         print(f"t={timedelta(seconds=time.perf_counter()-t1)} FAILED")
-        print(proc.stdout)
+#        print(proc.stdout)
+        with open(fn+".stdout", "wb") as stdout:
+            stdout.write(proc.stdout)
+        with open(fn+".sterr", "wb") as stderr:
+            stderr.write(proc.stderr)
         return True
     else:
             print(f"t={timedelta(seconds=time.perf_counter()-t1)}")

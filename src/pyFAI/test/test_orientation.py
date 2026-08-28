@@ -55,8 +55,11 @@ from scipy.spatial import cKDTree
 
 from .. import geometry
 from ..calibrant import get_calibrant
+from ..containers import FixedParameters
 from ..control_points import ControlPoints
 from ..detectors import detector_factory
+from ..geometry.utils import FLIPPED_AXES, convert_orientation
+from ..geometryRefinement import GeometryRefinement
 from .utilstest import UtilsTest
 
 logger = logging.getLogger(__name__)
@@ -70,12 +73,7 @@ class TestOrientationPositions(unittest.TestCase):
     # geometry used to generate the synthetic dataset, see the EDF header
     GEOMETRY: ClassVar[dict] = {"dist": 0.04, "poni1": 0.05, "poni2": 0.06,
                                 "rot1": 0.07, "rot2": 0.08, "rot3": 0.0}
-    # which axis is mirrored with respect to the native orientation (3):
-    # (slow/dim1, fast/dim2)
-    FLIPPED_AXES: ClassVar[dict] = {1: (True, True),
-                                    2: (True, False),
-                                    3: (False, False),
-                                    4: (False, True)}
+    FLIPPED_AXES: ClassVar[dict] = FLIPPED_AXES
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -245,10 +243,118 @@ class TestOrientationPositions(unittest.TestCase):
                                 f"{residual.max()} deg")
 
 
+class TestOrientationRefinement(unittest.TestCase):
+    """Refining the geometry from the control points must give back the
+    reference parameters, whatever the orientation the detector is declared in,
+    provided the control points are the ones picked for that orientation.
+
+    `rot3` and the wavelength are fixed during the refinement: the reference
+    setup is invariant under `rot3`, which is therefore not constrained by the
+    data and is not optimised.
+    """
+
+    DETECTOR = TestOrientationPositions.DETECTOR
+    WAVELENGTH = TestOrientationPositions.WAVELENGTH
+    REFERENCE: ClassVar[dict] = dict(TestOrientationPositions.GEOMETRY)
+    # the refinement lands within these of the reference, while a wrong
+    # orientation is off by ~2e-2 m and ~1.6e-1 rad, i.e. orders of magnitude more
+    TOLERANCE: ClassVar[dict] = {"dist": 1e-4, "poni1": 1e-4, "poni2": 1e-4,
+                                 "rot1": 1e-3, "rot2": 1e-3}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.detector = detector_factory(cls.DETECTOR)
+        cls.calibrant = get_calibrant("LaB6")
+        cls.calibrant.wavelength = cls.WAVELENGTH
+        # refinements are the expensive part, run them once
+        cls.matched = {o: cls.refine(cls.control_points(o), o) for o in (1, 2, 3, 4)}
+        points3 = cls.control_points(3)
+        cls.declared = {o: cls.refine(points3, o) for o in (1, 2, 3, 4)}
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        super().tearDownClass()
+        cls.matched = cls.declared = cls.calibrant = None
+
+    @staticmethod
+    def control_points(orientation):
+        return numpy.array(TestOrientationPositions.load_control_points(orientation))
+
+    @classmethod
+    def refine(cls, points, orientation):
+        """Refine the geometry, keeping `rot3` and the wavelength fixed
+
+        :return: dict of refined parameters
+        """
+        detector = detector_factory(cls.DETECTOR, {"orientation": orientation})
+        refiner = GeometryRefinement(data=points, calibrant=cls.calibrant,
+                                     detector=detector, wavelength=cls.WAVELENGTH,
+                                     dist=0.05,
+                                     poni1=detector.shape[0] * detector.pixel1 / 2,
+                                     poni2=detector.shape[1] * detector.pixel2 / 2,
+                                     rot1=0, rot2=0, rot3=0)
+        refiner.refine3(1000000, fix=FixedParameters(["wavelength", "rot3"]))
+        return {key: getattr(refiner, key)
+                for key in ("dist", "poni1", "poni2", "rot1", "rot2", "rot3")}
+
+    def test_refinement_is_orientation_invariant(self):
+        """Each file refined with its own orientation gives back the reference:
+        flipping the image and declaring the matching orientation cancel out."""
+        for orientation, found in self.matched.items():
+            with self.subTest(orientation=orientation):
+                for key, tolerance in self.TOLERANCE.items():
+                    self.assertAlmostEqual(found[key], self.REFERENCE[key], delta=tolerance,
+                                           msg=f"orientation {orientation}: {key} is "
+                                               f"{found[key]} instead of {self.REFERENCE[key]}")
+
+    def test_refinement_differs_with_another_orientation(self):
+        """Refining the *same* data while declaring another orientation converges
+        just as well but towards different parameters."""
+        reference = self.declared[3]
+        for orientation in (1, 2, 4):
+            with self.subTest(orientation=orientation):
+                found = self.declared[orientation]
+                flip1, flip2 = FLIPPED_AXES[orientation]
+                if flip1:
+                    self.assertGreater(abs(found["poni1"] - reference["poni1"]), 1e-3,
+                                       "poni1 should be mirrored")
+                    self.assertLess(found["rot2"] * reference["rot2"], 0, "rot2 should change sign")
+                if flip2:
+                    self.assertGreater(abs(found["poni2"] - reference["poni2"]), 1e-3,
+                                       "poni2 should be mirrored")
+                    self.assertLess(found["rot1"] * reference["rot1"], 0, "rot1 should change sign")
+
+    def test_convert_orientation_matches_refinement(self):
+        """`convert_orientation` reproduces what the refinement finds when the
+        same data is declared in another orientation."""
+        reference = self.declared[3]
+        for orientation in (1, 2, 4):
+            with self.subTest(orientation=orientation):
+                expected = convert_orientation(reference, self.detector, 3, orientation)
+                found = self.declared[orientation]
+                for key, tolerance in self.TOLERANCE.items():
+                    self.assertAlmostEqual(found[key], expected[key], delta=tolerance,
+                                           msg=f"orientation {orientation}: {key} is "
+                                               f"{found[key]}, converted gives {expected[key]}")
+
+    def test_convert_orientation_round_trip(self):
+        """Converting back and forth restores the parameters."""
+        reference = self.declared[3]
+        for orientation in (1, 2, 4):
+            with self.subTest(orientation=orientation):
+                there = convert_orientation(reference, self.detector, 3, orientation)
+                back = convert_orientation(there, self.detector, orientation, 3)
+                for key in self.TOLERANCE:
+                    self.assertAlmostEqual(back[key], reference[key], places=12,
+                                           msg=f"{key} not restored by the round trip")
+
+
 def suite():
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
     testsuite = unittest.TestSuite()
     testsuite.addTest(loader(TestOrientationPositions))
+    testsuite.addTest(loader(TestOrientationRefinement))
     return testsuite
 
 

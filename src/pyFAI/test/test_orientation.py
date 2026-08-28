@@ -58,6 +58,7 @@ from ..calibrant import get_calibrant
 from ..containers import FixedParameters
 from ..control_points import ControlPoints
 from ..detectors import detector_factory
+from ..geometry.imaged11 import convert_from_ImageD11, convert_to_ImageD11
 from ..geometry.utils import FLIPPED_AXES, convert_orientation
 from ..geometryRefinement import GeometryRefinement
 from .utilstest import UtilsTest
@@ -350,11 +351,112 @@ class TestOrientationRefinement(unittest.TestCase):
                                            msg=f"{key} not restored by the round trip")
 
 
+class TestImageD11Interoperability(unittest.TestCase):
+    """pyFAI and ImageD11 must place the pixels at the very same position in the
+    laboratory frame, for every detector orientation.
+
+    The two frames are related by a plain relabelling of the axes, without any
+    sign change:  pyFAI (beam, slow, fast) == ImageD11 (x, z, y).
+    """
+
+    DETECTOR = TestOrientationPositions.DETECTOR
+    WAVELENGTH = TestOrientationPositions.WAVELENGTH
+    # a geometry with all three rotations, rot3 included, so that every term of
+    # the conversion is exercised
+    GEOMETRY: ClassVar[dict] = {"dist": 0.04, "poni1": 0.05, "poni2": 0.06,
+                                "rot1": 0.07, "rot2": 0.08, "rot3": 0.23}
+    # half a pixel is 3.75e-5 m for this detector, aim one order of magnitude below
+    TOLERANCE = 1e-5
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        try:
+            from ImageD11 import transform
+        except ImportError:
+            raise unittest.SkipTest("ImageD11 is not installed") from None
+        cls.transform = transform
+        detector = detector_factory(cls.DETECTOR)
+        slow, fast = numpy.meshgrid(numpy.linspace(0, detector.shape[0] - 1, 9),
+                                    numpy.linspace(0, detector.shape[1] - 1, 11),
+                                    indexing="ij")
+        cls.slow = slow.ravel()
+        cls.fast = fast.ravel()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        super().tearDownClass()
+        cls.transform = cls.slow = cls.fast = None
+
+    def build_geometry(self, orientation):
+        detector = detector_factory(self.DETECTOR, {"orientation": orientation})
+        return geometry.Geometry(detector=detector, wavelength=self.WAVELENGTH,
+                                 **self.GEOMETRY)
+
+    def imaged11_positions(self, parameters):
+        """Position of the pixels according to ImageD11, in meter, reordered
+        the pyFAI way: (beam, slow, fast)
+
+        :param parameters: ImageD11Geometry, in meter (distance_unit="m")
+        """
+        # compute_xyz_lab ignores the extra keys (shape, spline, wavelength)
+        lab = self.transform.compute_xyz_lab([self.slow, self.fast],
+                                             **parameters._asdict())
+        return numpy.array([lab[0], lab[2], lab[1]])
+
+    def test_same_position_in_space(self):
+        """The core requirement: same xyz, better than half a pixel."""
+        for orientation in (1, 2, 3, 4):
+            with self.subTest(orientation=orientation):
+                ai = self.build_geometry(orientation)
+                expected = numpy.array(ai.calc_pos_zyx(d1=self.slow, d2=self.fast))
+                parameters = convert_to_ImageD11(ai, distance_unit="m")
+                delta = abs(self.imaged11_positions(parameters) - expected).max()
+                self.assertLess(delta, self.TOLERANCE,
+                                f"orientation {orientation}: positions differ by {delta} m")
+
+    def test_orientation_maps_to_the_flip_matrix(self):
+        """The o-matrix of ImageD11 carries exactly the same information as the
+        orientation of pyFAI: one sign per mirrored axis."""
+        for orientation in (1, 2, 3, 4):
+            with self.subTest(orientation=orientation):
+                parameters = convert_to_ImageD11(self.build_geometry(orientation))
+                flip_slow, flip_fast = FLIPPED_AXES[orientation]
+                self.assertEqual(parameters.o11, -1 if flip_slow else 1, "o11")
+                self.assertEqual(parameters.o22, -1 if flip_fast else 1, "o22")
+                self.assertEqual((parameters.o12, parameters.o21), (0, 0), "no transposition")
+
+    def test_round_trip(self):
+        """Converting to ImageD11 and back restores the pyFAI geometry."""
+        for orientation in (1, 2, 3, 4):
+            with self.subTest(orientation=orientation):
+                ai = self.build_geometry(orientation)
+                back = convert_from_ImageD11(convert_to_ImageD11(ai, distance_unit="m"))
+                for key, expected in self.GEOMETRY.items():
+                    self.assertAlmostEqual(getattr(back, key), expected, places=9,
+                                           msg=f"orientation {orientation}: {key}")
+                self.assertEqual(back.detector.orientation, orientation, "orientation restored")
+
+    def test_tth_matches(self):
+        """Scattering angles agree as well, which is what ImageD11 users
+        actually consume."""
+        for orientation in (1, 2, 3, 4):
+            with self.subTest(orientation=orientation):
+                ai = self.build_geometry(orientation)
+                positions = self.imaged11_positions(convert_to_ImageD11(ai, distance_unit="m"))
+                radius = numpy.sqrt(positions[1] ** 2 + positions[2] ** 2)
+                tth = numpy.arctan2(radius, positions[0])
+                delta = abs(numpy.rad2deg(tth - ai.tth(self.slow, self.fast))).max()
+                self.assertLess(delta, 1e-3, f"orientation {orientation}: "
+                                             f"2theta differs by {delta} deg")
+
+
 def suite():
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
     testsuite = unittest.TestSuite()
     testsuite.addTest(loader(TestOrientationPositions))
     testsuite.addTest(loader(TestOrientationRefinement))
+    testsuite.addTest(loader(TestImageD11Interoperability))
     return testsuite
 
 

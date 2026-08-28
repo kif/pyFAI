@@ -31,7 +31,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "28/08/2026"
 
 import logging
 import unittest
@@ -133,7 +133,10 @@ class TestFIT2D(unittest.TestCase):
                 unittest.skip(f"ImageD11 does not recognize is parameter set: {param}")
             else:
                 self.assertTrue(numpy.allclose(id11.tth, ai.center_array(unit="2th_deg"), atol=3e-2), "2theta array matches")
-                self.assertLess(numpy.median(abs((270-id11.eta)%360-180 - ai.center_array(unit="chi_deg"))), 0.5, "chi array roughly matches")
+                # the azimuth of ImageD11 is the one of pyFAI shifted by 90 deg,
+                # the difference is wrapped into [-180, 180] before comparing
+                delta = (id11.eta + 90 - ai.center_array(unit="chi_deg") + 180) % 360 - 180
+                self.assertLess(numpy.median(abs(delta)), 0.5, "chi array roughly matches")
 
 
 class TestExport(unittest.TestCase):

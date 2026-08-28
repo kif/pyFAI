@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer, Carsten DETLEFS"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "06/10/2025"
+__date__ = "28/08/2026"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 
@@ -45,6 +45,7 @@ from ..detectors import Detector
 from ..io.ponifile import PoniFile
 from ..units import LENGTH_UNITS, to_unit
 from .fit2d import convert_to_Fit2d
+from .utils import FLIPPED_AXES
 
 logger = logging.getLogger(__name__)
 
@@ -133,23 +134,29 @@ def convert_to_ImageD11(poni, distance_unit="µm", wavelength_unit="nm"):
     wavelength_unit = to_unit(wavelength_unit, LENGTH_UNITS)
     f2d = convert_to_Fit2d(poni)
     orientation = detector.orientation
-    if orientation == 3:
-        (o11, o12, o21, o22) = (1, 0, 0, -1)
-    elif orientation == 1:
-        (o11, o12, o21, o22) = (-1, 0, 0, 1)
-    elif orientation == 4:
-        (o11, o12, o21, o22) = (1, 0, 0, 1)
-    elif orientation == 2:
-        (o11, o12, o21, o22) = (-1, 0, 0, -1)
-    else:
-        raise ValueError("Invalid orientation")
-    id11 = {"o11": o11, "o12": o12, "o21": o21, "o22": o22}
+    if orientation not in FLIPPED_AXES:
+        raise ValueError(f"Invalid orientation {orientation}, expected 1 to 4")
+    # pyFAI mirrors the pixel *index*, ImageD11 mirrors the *coordinate* through
+    # the o-matrix: one flag per axis, the very same information.
+    flip_slow, flip_fast = FLIPPED_AXES[orientation]
+    shape = detector.shape or detector.max_shape
+    if (flip_slow or flip_fast) and not shape:
+        raise ValueError(f"The detector shape is needed to convert orientation {orientation}")
+    id11 = {"o11": -1 if flip_slow else 1, "o12": 0,
+            "o21": 0, "o22": -1 if flip_fast else 1}
     id11["distance"] = (f2d.directDist or 0) * 1e-3 * distance_unit.scale
-    id11["y_center"] = (f2d.centerX or 0)  # in pixel
-    id11["z_center"] = (f2d.centerY or 0)  # in pixel
-    id11["tilt_x"] = poni.rot3
+    # Fit2D counts the beam center half a pixel further than ImageD11 does
+    z_center = (f2d.centerY or 0) - 0.5  # in pixel
+    y_center = (f2d.centerX or 0) - 0.5  # in pixel
+    if flip_slow:
+        z_center = shape[0] - 1 - z_center
+    if flip_fast:
+        y_center = shape[1] - 1 - y_center
+    id11["y_center"] = y_center
+    id11["z_center"] = z_center
+    id11["tilt_x"] = -poni.rot3
     id11["tilt_y"] = poni.rot2
-    id11["tilt_z"] = -poni.rot1
+    id11["tilt_z"] = poni.rot1
     if poni.wavelength:
         id11["wavelength"] = poni.wavelength * wavelength_unit.scale
     id11["y_size"] = detector.pixel2 * distance_unit.scale
@@ -178,17 +185,10 @@ def convert_from_ImageD11(id11):
     o21 = id11.o21
     o22 = id11.o22
 
-    # TODO: double check !!!
-    if  (o11, o12, o21, o22) == (1, 0, 0, -1):
-        orientation = 3
-    elif  (o11, o12, o21, o22) == (-1, 0, 0, +1):
-        orientation = 1
-    elif (o11, o12, o21, o22) == (1, 0, 0, 1):
-        orientation = 4
-    elif (o11, o12, o21, o22) == (-1, 0, 0, -1):
-        orientation = 2
-    else:
+    if o12 or o21 or abs(o11) != 1 or abs(o22) != 1:
         raise RuntimeError("Transposed orientations are not supported")
+    flipped = (o11 == -1, o22 == -1)
+    orientation = next(key for key, value in FLIPPED_AXES.items() if value == flipped)
 
     if id11.wavelength_unit:
         wl_scale = id11.wavelength_unit.scale
@@ -200,16 +200,26 @@ def convert_from_ImageD11(id11):
         len_scale = 1e6 # µm by default (compatibility with implementation from Carsten in 2019)
 
     poni = PoniFile()
-    poni._rot3 = id11.tilt_x or 0
+    poni._rot3 = -(id11.tilt_x or 0)
     poni._rot2 = id11.tilt_y or 0
-    poni._rot1 = -id11.tilt_z or 0
+    poni._rot1 = id11.tilt_z or 0
     distance = (id11.distance or 0) / len_scale
     poni._dist = distance * cos(poni.rot2) * cos(poni.rot1)
     pixel_v = (id11.z_size or 0) / len_scale
     pixel_h = (id11.y_size or 0) / len_scale
-    poni._poni1 = -distance * sin(poni.rot2) + pixel_v * (id11.z_center or 0.0)
-    poni._poni2 = +distance * cos(poni.rot2) * sin(poni.rot1) + pixel_h * (id11.y_center or 0)
     shape = id11.shape
+    z_center = id11.z_center or 0.0
+    y_center = id11.y_center or 0.0
+    if flipped[0] or flipped[1]:
+        if not shape:
+            raise ValueError(f"The detector shape is needed to convert orientation {orientation}")
+        if flipped[0]:
+            z_center = shape[0] - 1 - z_center
+        if flipped[1]:
+            y_center = shape[1] - 1 - y_center
+    # ImageD11 counts the beam center half a pixel before Fit2D and pyFAI do
+    poni._poni1 = -distance * sin(poni.rot2) + pixel_v * (z_center + 0.5)
+    poni._poni2 = +distance * cos(poni.rot2) * sin(poni.rot1) + pixel_h * (y_center + 0.5)
     spline = id11.spline
     poni._detector = Detector(pixel1=pixel_v, pixel2=pixel_h, splinefile=spline, max_shape=shape, orientation=orientation)
     wl = id11.wavelength

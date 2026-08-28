@@ -75,6 +75,7 @@ from . import (
     test_medfilt_engine,
     test_method_registry,
     test_multi_geometry,
+    test_orientation,
     test_parallax,
     test_peak_picking,
     test_polarization,
@@ -115,6 +116,7 @@ def suite():
     testsuite.addTest(test_azimuthal_integrator.suite())
     testsuite.addTest(test_peak_picking.suite())
     testsuite.addTest(test_geometry.suite())
+    testsuite.addTest(test_orientation.suite())
     testsuite.addTest(test_mask.suite())
     testsuite.addTest(test_method_registry.suite())
     testsuite.addTest(test_export.suite())

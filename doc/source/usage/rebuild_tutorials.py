@@ -48,15 +48,14 @@ def run_notebook(fn):
     proc = subprocess.run([sys.executable, "-m", "nbconvert", "--to", "notebook", "--execute", "--inplace",
                            fn], capture_output=True)
     if proc.returncode != 0:
-        print(f"t={timedelta(seconds=time.perf_counter()-t1)} FAILED")
-#        print(proc.stdout)
+        print(f"\t t={timedelta(seconds=time.perf_counter()-t1)}"[:-3]+"s\t FAILED")
         with open(fn+".stdout", "wb") as stdout:
             stdout.write(proc.stdout)
-        with open(fn+".sterr", "wb") as stderr:
+        with open(fn+".stderr", "wb") as stderr:
             stderr.write(proc.stderr)
         return True
     else:
-            print(f"t={timedelta(seconds=time.perf_counter()-t1)}")
+        print(f"\t t={timedelta(seconds=time.perf_counter()-t1)}"[:-3]+"s")
 
 
 if __name__ == "__main__":

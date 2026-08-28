@@ -1,5 +1,5 @@
 :Author: Jérôme Kieffer
-:Date: 19/08/2026
+:Date: 28/08/2026
 :Keywords: changelog
 
 Change-log of versions
@@ -10,6 +10,9 @@ Change-log of versions
 - Change of behavior of `Calibrant` which raises `ValueError` when a file exist but does not d-spacing info / `IOError` when absent
 - Fix serialization issue with Rayonix detectors (regression introduced with parallax, #2904)
 - Fix hang when changing detector (size) after a first calibration or inconsistent detector shape (#2890)
+- Detector `orientation` is now a pure re-indexing of the pixels: the azimuthal angle is no longer inverted a second time in the laboratory frame. For orientation != 3, `chi` and the fiber/grazing-incidence units change; `tth`, `q` and `r` are unchanged.
+- Fix `from pyFAI import *` and submodules: `__all__` contained objects instead of their names
+- Code quality: large Ruff clean-up over `src/`, `ruff check` re-enabled in pre-commit (>=0.16)
 - Test are by default without GUI output, much cleaner now.
 - Supports python 3.10-3.14, 3.14t is untested.
 

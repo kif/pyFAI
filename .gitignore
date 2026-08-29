@@ -38,6 +38,8 @@
 
 # Notebook
 .ipynb_checkpoints
+*.ipynb.stderr
+*.ipynb.stdout
 
 
 # Discard generated C-files

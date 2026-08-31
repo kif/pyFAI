@@ -133,9 +133,11 @@ class TestFIT2D(unittest.TestCase):
                 unittest.skip(f"ImageD11 does not recognize is parameter set: {param}")
             else:
                 self.assertTrue(numpy.allclose(id11.tth, ai.center_array(unit="2th_deg"), atol=3e-2), "2theta array matches")
-                # the azimuth of ImageD11 is the one of pyFAI shifted by 90 deg,
-                # the difference is wrapped into [-180, 180] before comparing
-                delta = (id11.eta + 90 - ai.center_array(unit="chi_deg") + 180) % 360 - 180
+                # chi of pyFAI is 90 - eta of ImageD11: the azimuth is measured
+                # from a different axis and in the opposite direction, since the
+                # horizontal axis is inverted between the two conventions.
+                # The difference is wrapped into [-180, 180] before comparing.
+                delta = (90 - id11.eta - ai.center_array(unit="chi_deg") + 180) % 360 - 180
                 self.assertLess(numpy.median(abs(delta)), 0.5, "chi array roughly matches")
 
 

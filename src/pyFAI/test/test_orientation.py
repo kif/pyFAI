@@ -44,7 +44,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "28/08/2026"
+__date__ = "31/08/2026"
 
 import logging
 import unittest
@@ -58,8 +58,17 @@ from ..calibrant import get_calibrant
 from ..containers import FixedParameters
 from ..control_points import ControlPoints
 from ..detectors import detector_factory
-from ..geometry.imaged11 import convert_from_ImageD11, convert_to_ImageD11
-from ..geometry.utils import FLIPPED_AXES, convert_orientation
+from ..geometry.imaged11 import (
+    ORIENTATION_TO_FLIP_MATRIX,
+    convert_from_ImageD11,
+    convert_to_ImageD11,
+)
+from ..geometry.utils import (
+    CORNER_OF_THE_DETECTOR,
+    FLIPPED_AXES,
+    convert_orientation,
+    detector_corner,
+)
 from ..geometryRefinement import GeometryRefinement
 from .utilstest import UtilsTest
 
@@ -355,8 +364,11 @@ class TestImageD11Interoperability(unittest.TestCase):
     """pyFAI and ImageD11 must place the pixels at the very same position in the
     laboratory frame, for every detector orientation.
 
-    The two frames are related by a plain relabelling of the axes, without any
-    sign change:  pyFAI (beam, slow, fast) == ImageD11 (x, z, y).
+    The two frames are related by the change of axes documented in
+    `doc/source/geometry_conversion.rst`:
+    pyFAI (beam, slow, fast) == ImageD11 (x, z, -y). The sign on the horizontal
+    transverse axis is physical: it points towards the center of the storage
+    ring for pyFAI, away from it for ImageD11.
     """
 
     DETECTOR = TestOrientationPositions.DETECTOR
@@ -402,7 +414,8 @@ class TestImageD11Interoperability(unittest.TestCase):
         # compute_xyz_lab ignores the extra keys (shape, spline, wavelength)
         lab = self.transform.compute_xyz_lab([self.slow, self.fast],
                                              **parameters._asdict())
-        return numpy.array([lab[0], lab[2], lab[1]])
+        # (x, y, z) of ImageD11 -> (beam, slow, fast) of pyFAI
+        return numpy.array([lab[0], lab[2], -lab[1]])
 
     def test_same_position_in_space(self):
         """The core requirement: same xyz, better than half a pixel."""
@@ -416,15 +429,20 @@ class TestImageD11Interoperability(unittest.TestCase):
                                 f"orientation {orientation}: positions differ by {delta} m")
 
     def test_orientation_maps_to_the_flip_matrix(self):
-        """The o-matrix of ImageD11 carries exactly the same information as the
-        orientation of pyFAI: one sign per mirrored axis."""
+        """The o-matrix of ImageD11 carries the orientation of pyFAI, composed
+        with the `o22 = -1` which the two axis conventions already require."""
         for orientation in (1, 2, 3, 4):
             with self.subTest(orientation=orientation):
                 parameters = convert_to_ImageD11(self.build_geometry(orientation))
-                flip_slow, flip_fast = FLIPPED_AXES[orientation]
-                self.assertEqual(parameters.o11, -1 if flip_slow else 1, "o11")
-                self.assertEqual(parameters.o22, -1 if flip_fast else 1, "o22")
+                o11, o22 = ORIENTATION_TO_FLIP_MATRIX[orientation]
+                self.assertEqual(parameters.o11, o11, "o11")
+                self.assertEqual(parameters.o22, o22, "o22")
                 self.assertEqual((parameters.o12, parameters.o21), (0, 0), "no transposition")
+                # each mirrored axis flips its own sign with respect to orientation 3
+                flip_slow, flip_fast = FLIPPED_AXES[orientation]
+                reference = ORIENTATION_TO_FLIP_MATRIX[3]
+                self.assertEqual(o11, -reference[0] if flip_slow else reference[0])
+                self.assertEqual(o22, -reference[1] if flip_fast else reference[1])
 
     def test_round_trip(self):
         """Converting to ImageD11 and back restores the pyFAI geometry."""
@@ -451,12 +469,161 @@ class TestImageD11Interoperability(unittest.TestCase):
                                              f"2theta differs by {delta} deg")
 
 
+class TestIrregularPixels(unittest.TestCase):
+    """`poni1`/`poni2` are distances from the corner of pixel (0, 0), so
+    mirroring them needs the real corners of the detector.
+
+    Those corners are not at 0 and `shape * pixel_size`: modular detectors have
+    wider pixels along the module borders, which pushes the far corner several
+    millimetres beyond the naive product, and a spline-corrected detector has
+    the corner of its pixel (0, 0) displaced away from the origin.
+    """
+
+    REGULAR = "Eiger2_1M"
+    SPLINE = "Frelon"
+    # module borders make these reach beyond shape * pixel_size, by the amount
+    # given here along the slow and the fast dimension, in meter
+    IRREGULAR: ClassVar[dict] = {"ImXPadS140": (3.90e-4, 2.34e-3),
+                                 "ImXPadS70": (0.0, 2.34e-3),
+                                 "Xpad_flat": (2.499e-2, 2.34e-3)}
+    # get_pixel_corners stores float32, i.e. ~0.1 µm over a 0.1 m detector
+    PLACES = 7
+    FLIPS = ((False, False), (True, False), (False, True), (True, True))
+
+    @staticmethod
+    def build_detector(name, orientation):
+        """Detector with its real pixel grid loaded.
+
+        `calc_cartesian_positions` falls back on a uniform grid built from
+        `pixel1`/`pixel2` as long as `_pixel_corners` has not been populated,
+        which would hide the very irregularity under test here.
+
+        :param name: name of the detector
+        :param orientation: 1, 2, 3 or 4
+        :return: Detector instance
+        """
+        detector = detector_factory(name, {"orientation": orientation})
+        detector.get_pixel_corners()
+        return detector
+
+    @classmethod
+    def build_spline_detector(cls):
+        """FReLoN with its distortion spline, the reference irregular grid
+
+        :return: Detector instance
+        """
+        return detector_factory(cls.SPLINE,
+                                {"splineFile": UtilsTest.getimage("frelon.spline")})
+
+    def test_regular_detector_matches_the_naive_product(self):
+        """On a detector with identical pixels the corners are at 0 and
+        `shape * pixel_size`, which is what the naive rule assumed."""
+        detector = detector_factory(self.REGULAR)
+        length1 = detector.shape[0] * detector.pixel1
+        length2 = detector.shape[1] * detector.pixel2
+        expected = {(False, False): (0.0, 0.0),
+                    (True, False): (length1, 0.0),
+                    (False, True): (0.0, length2),
+                    (True, True): (length1, length2)}
+        for flips, (slow, fast) in expected.items():
+            with self.subTest(flips=flips):
+                got = detector_corner(detector, *flips)
+                self.assertAlmostEqual(got[0], slow, self.PLACES, "slow")
+                self.assertAlmostEqual(got[1], fast, self.PLACES, "fast")
+
+    def test_irregular_detector_reaches_beyond_the_naive_product(self):
+        """The regression: `shape * pixel_size` under-estimates the size of a
+        modular detector, by 25 mm on Xpad_flat."""
+        for name, (excess1, excess2) in self.IRREGULAR.items():
+            with self.subTest(detector=name):
+                detector = detector_factory(name)
+                far = detector_corner(detector, True, True)
+                self.assertAlmostEqual(far[0] - detector.shape[0] * detector.pixel1,
+                                       excess1, self.PLACES, "far corner, slow")
+                self.assertAlmostEqual(far[1] - detector.shape[1] * detector.pixel2,
+                                       excess2, self.PLACES, "far corner, fast")
+
+    def test_corner_is_the_vertex_at_the_matching_index(self):
+        """The pixel and the vertex both have to follow the mirrored axes, so
+        the result must be the position of the corner of the detector in index
+        space: (0, 0), (n1, 0), (0, n2) or (n1, n2)."""
+        detectors = [detector_factory(name)
+                     for name in [self.REGULAR, *self.IRREGULAR]]
+        detectors.append(self.build_spline_detector())
+        for detector in detectors:
+            shape = detector.shape
+            for flips in self.FLIPS:
+                with self.subTest(detector=detector.name, flips=flips):
+                    index1 = numpy.array([shape[0] if flips[0] else 0], dtype=numpy.float64)
+                    index2 = numpy.array([shape[1] if flips[1] else 0], dtype=numpy.float64)
+                    slow, fast, _ = detector.calc_cartesian_positions(index1, index2,
+                                                                      center=False)
+                    got = detector_corner(detector, *flips)
+                    self.assertAlmostEqual(got[0], float(slow), self.PLACES, "slow")
+                    self.assertAlmostEqual(got[1], float(fast), self.PLACES, "fast")
+
+    def test_spline_corner_is_not_an_extremum(self):
+        """Why a specific vertex is needed rather than a min or a max: the
+        pixels of a spline-corrected detector are distorted quadrilaterals, so
+        the vertex bounding the sensor is not the extreme one of its pixel."""
+        detector = self.build_spline_detector()
+        corners = detector.get_pixel_corners()
+        deltas = []
+        for flips in self.FLIPS:
+            index1, index2, vertex = CORNER_OF_THE_DETECTOR[flips]
+            pixel = corners[index1, index2]
+            for dim, flipped in enumerate(flips, start=1):
+                extremum = pixel[:, dim].max() if flipped else pixel[:, dim].min()
+                deltas.append(abs(float(pixel[vertex, dim] - extremum)))
+        self.assertGreater(max(deltas), 1e-6,
+                           "the spline does not displace the vertices, "
+                           "this detector no longer exercises the case")
+
+    def test_conversion_is_an_involution(self):
+        """Converting to another orientation and back restores the geometry."""
+        parameters = {"dist": 0.04, "poni1": 0.011, "poni2": 0.013,
+                      "rot1": 0.07, "rot2": 0.08, "rot3": 0.0}
+        for name in [self.REGULAR, *self.IRREGULAR]:
+            detector = detector_factory(name)
+            for orientation in (1, 2, 4):
+                with self.subTest(detector=name, orientation=orientation):
+                    there = convert_orientation(parameters, detector, 3, orientation)
+                    back = convert_orientation(there, detector, orientation, 3)
+                    for key, expected in parameters.items():
+                        self.assertAlmostEqual(back[key], expected, 12, key)
+
+    def test_conversion_mirrors_the_positions(self):
+        """The physical content of the conversion: expressing the same data in
+        a mirrored orientation negates the laboratory coordinate of the
+        mirrored axis and leaves the other two alone."""
+        parameters = {"dist": 0.04, "poni1": 0.011, "poni2": 0.013,
+                      "rot1": 0.07, "rot2": 0.08, "rot3": 0.0}
+        for detector_name in [self.REGULAR, "ImXPadS70"]:
+            reference = self.build_detector(detector_name, 3)
+            beam, slow, fast = geometry.Geometry(detector=reference, wavelength=1e-10,
+                                                **parameters).calc_pos_zyx(corners=False)
+            for orientation in (1, 2, 4):
+                with self.subTest(detector=detector_name, orientation=orientation):
+                    flip1, flip2 = FLIPPED_AXES[orientation]
+                    converted = convert_orientation(parameters, reference, 3, orientation)
+                    detector = self.build_detector(detector_name, orientation)
+                    got = geometry.Geometry(detector=detector, wavelength=1e-10,
+                                            **converted).calc_pos_zyx(corners=False)
+                    axes = [(beam, "beam"),
+                            (-slow if flip1 else slow, "slow"),
+                            (-fast if flip2 else fast, "fast")]
+                    for axis, (expected, label) in enumerate(axes):
+                        delta = abs(got[axis] - expected).max()
+                        self.assertLess(delta, 1e-7, f"{label} differs by {delta} m")
+
+
 def suite():
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
     testsuite = unittest.TestSuite()
     testsuite.addTest(loader(TestOrientationPositions))
     testsuite.addTest(loader(TestOrientationRefinement))
     testsuite.addTest(loader(TestImageD11Interoperability))
+    testsuite.addTest(loader(TestIrregularPixels))
     return testsuite
 
 

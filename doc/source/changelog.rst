@@ -1,5 +1,5 @@
 :Author: Jérôme Kieffer
-:Date: 28/08/2026
+:Date: 31/08/2026
 :Keywords: changelog
 
 Change-log of versions
@@ -11,6 +11,7 @@ Change-log of versions
 - Fix serialization issue with Rayonix detectors (regression introduced with parallax, #2904)
 - Fix hang when changing detector (size) after a first calibration or inconsistent detector shape (#2890)
 - Detector `orientation` is now a pure re-indexing of the pixels: the azimuthal angle is no longer inverted a second time in the laboratory frame. For orientation != 3, `chi` and the fiber/grazing-incidence units change; `tth`, `q` and `r` are unchanged.
+- New `pyFAI.geometry.utils` with `convert_orientation`, to re-express a geometry in another detector orientation, and `detector_corner`, which reads the real corners of the detector from its pixel corners instead of assuming `shape * pixel_size`: the far corner is 25 mm beyond it on `Xpad_flat`, and on a spline-corrected detector the corner of pixel (0, 0) is not at the origin
 - Fix `from pyFAI import *` and submodules: `__all__` contained objects instead of their names
 - Code quality: large Ruff clean-up over `src/`, `ruff check` re-enabled in pre-commit (>=0.16)
 - Test are by default without GUI output, much cleaner now.

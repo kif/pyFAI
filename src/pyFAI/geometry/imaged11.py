@@ -49,6 +49,18 @@ from .utils import FLIPPED_AXES
 
 logger = logging.getLogger(__name__)
 
+ORIENTATION_TO_FLIP_MATRIX = {1: (-1, +1),
+                              2: (-1, -1),
+                              3: (+1, -1),
+                              4: (+1, +1)}
+"""ImageD11 flip matrix (o11, o22) for each pyFAI detector orientation.
+
+Orientation 3, the native one in pyFAI, already needs ``o22 = -1`` because the
+horizontal transverse axis points in opposite directions in the two
+conventions: towards the center of the storage ring for pyFAI, away from it for
+ImageD11. The mirrored axes of the other orientations then compose with it.
+"""
+
 
 
 _ImageD11Geometry = namedtuple("_ImageD11Geometry",
@@ -134,16 +146,16 @@ def convert_to_ImageD11(poni, distance_unit="µm", wavelength_unit="nm"):
     wavelength_unit = to_unit(wavelength_unit, LENGTH_UNITS)
     f2d = convert_to_Fit2d(poni)
     orientation = detector.orientation
-    if orientation not in FLIPPED_AXES:
+    if orientation not in ORIENTATION_TO_FLIP_MATRIX:
         raise ValueError(f"Invalid orientation {orientation}, expected 1 to 4")
-    # pyFAI mirrors the pixel *index*, ImageD11 mirrors the *coordinate* through
-    # the o-matrix: one flag per axis, the very same information.
+    o11, o22 = ORIENTATION_TO_FLIP_MATRIX[orientation]
+    # pyFAI mirrors the pixel *index* while ImageD11 mirrors the *coordinate*
+    # about the beam center, so the mirrored axes need their center re-expressed.
     flip_slow, flip_fast = FLIPPED_AXES[orientation]
     shape = detector.shape or detector.max_shape
     if (flip_slow or flip_fast) and not shape:
         raise ValueError(f"The detector shape is needed to convert orientation {orientation}")
-    id11 = {"o11": -1 if flip_slow else 1, "o12": 0,
-            "o21": 0, "o22": -1 if flip_fast else 1}
+    id11 = {"o11": o11, "o12": 0, "o21": 0, "o22": o22}
     id11["distance"] = (f2d.directDist or 0) * 1e-3 * distance_unit.scale
     # Fit2D counts the beam center half a pixel further than ImageD11 does
     z_center = (f2d.centerY or 0) - 0.5  # in pixel
@@ -154,9 +166,9 @@ def convert_to_ImageD11(poni, distance_unit="µm", wavelength_unit="nm"):
         y_center = shape[1] - 1 - y_center
     id11["y_center"] = y_center
     id11["z_center"] = z_center
-    id11["tilt_x"] = -poni.rot3
+    id11["tilt_x"] = poni.rot3
     id11["tilt_y"] = poni.rot2
-    id11["tilt_z"] = poni.rot1
+    id11["tilt_z"] = -poni.rot1
     if poni.wavelength:
         id11["wavelength"] = poni.wavelength * wavelength_unit.scale
     id11["y_size"] = detector.pixel2 * distance_unit.scale
@@ -187,8 +199,12 @@ def convert_from_ImageD11(id11):
 
     if o12 or o21 or abs(o11) != 1 or abs(o22) != 1:
         raise RuntimeError("Transposed orientations are not supported")
-    flipped = (o11 == -1, o22 == -1)
-    orientation = next(key for key, value in FLIPPED_AXES.items() if value == flipped)
+    try:
+        orientation = next(key for key, value in ORIENTATION_TO_FLIP_MATRIX.items()
+                           if value == (o11, o22))
+    except StopIteration:
+        raise RuntimeError(f"No orientation matches the flip matrix ({o11}, {o22})") from None
+    flipped = FLIPPED_AXES[orientation]
 
     if id11.wavelength_unit:
         wl_scale = id11.wavelength_unit.scale
@@ -200,9 +216,9 @@ def convert_from_ImageD11(id11):
         len_scale = 1e6 # µm by default (compatibility with implementation from Carsten in 2019)
 
     poni = PoniFile()
-    poni._rot3 = -(id11.tilt_x or 0)
+    poni._rot3 = id11.tilt_x or 0
     poni._rot2 = id11.tilt_y or 0
-    poni._rot1 = id11.tilt_z or 0
+    poni._rot1 = -(id11.tilt_z or 0)
     distance = (id11.distance or 0) / len_scale
     poni._dist = distance * cos(poni.rot2) * cos(poni.rot1)
     pixel_v = (id11.z_size or 0) / len_scale

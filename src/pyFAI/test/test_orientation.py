@@ -44,7 +44,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2026"
+__date__ = "01/09/2026"
 
 import logging
 import unittest
@@ -559,8 +559,11 @@ class TestIrregularPixels(unittest.TestCase):
                     slow, fast, _ = detector.calc_cartesian_positions(index1, index2,
                                                                       center=False)
                     got = detector_corner(detector, *flips)
-                    self.assertAlmostEqual(got[0], float(slow), self.PLACES, "slow")
-                    self.assertAlmostEqual(got[1], float(fast), self.PLACES, "fast")
+                    # the shape of the result varies with the detector, ravel
+                    # rather than convert: numpy >= 2.3 rejects float() on an
+                    # array which holds a single value but is not 0-dimensional
+                    self.assertAlmostEqual(got[0], numpy.ravel(slow)[0], self.PLACES, "slow")
+                    self.assertAlmostEqual(got[1], numpy.ravel(fast)[0], self.PLACES, "fast")
 
     def test_spline_corner_is_not_an_extremum(self):
         """Why a specific vertex is needed rather than a min or a max: the

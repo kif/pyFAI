@@ -343,11 +343,11 @@ if os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0]):
 def get_test_options(project_module):
     """Returns the test options if available, else None"""
     module_name = project_module.__name__ + '.test.utilstest'
-    logger.info('Import %s', module_name)
+    logger.info(f'Import {module_name}')
     try:
         test_utils = importer(module_name)
-    except ImportError:
-        logger.warning("No module named '%s'. No test options available.", module_name)
+    except ImportError as error:
+        logger.warning("No module named '%s'. No test options available. %s", module_name, error)
         return None
 
     test_options = getattr(test_utils, "test_options", None)

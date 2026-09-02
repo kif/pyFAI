@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/08/2026"
+__date__ = "02/09/2026"
 __status__ = "stable"
 
 import copy
@@ -1397,6 +1397,7 @@ class NexusDetector(Detector):
         super().__init__(orientation=orientation, sensor = sensor)
         self.uniform_pixel = True
         self._filename = None
+        self._h5path = None
         if filename is not None:
             self.load(filename)
         if orientation:
@@ -1429,6 +1430,7 @@ class NexusDetector(Detector):
             det_grp = nxs.find_detector()
             if not det_grp:
                 raise RuntimeError(f"No detector definition in this file {filename}")
+            self._h5path = det_grp.name
             name = posixpath.split(det_grp.name)[-1]
             self.aliases = [name.replace("_", " "), det_grp.name]
             if "API_VERSION" in det_grp:

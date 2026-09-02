@@ -219,7 +219,7 @@ class Detector(metaclass=DetectorMeta):
         self._pixel1 = None
         self._pixel2 = None
         self._pixel_corners = None
-        self.sensor = None
+        self._sensor = None
 
         if max_shape is None:
             self.max_shape = tuple(self.MAX_SHAPE) if "MAX_SHAPE" in dir(self.__class__) else None
@@ -279,17 +279,10 @@ class Detector(metaclass=DetectorMeta):
             raise RuntimeError("Unsupported orientation: " + orientation.__doc__)
         self._orientation = orientation
 
-        if isinstance(sensor, dict):
-            sensor = SensorConfig.from_dict(sensor)
-
-        if isinstance(sensor, SensorConfig):
-            if sensor not in self.SENSORS:
-                logger.warning("Sensor %s not in allowed SENSORS: [%s].", sensor, "|".join(str(i) for i in self.SENSORS))
-            self.sensor = sensor
-        elif sensor is None:
+        if sensor is None:
             logger.info("No sensor configuration provided; using default behaviour.")
         else:
-            logger.error("Sensor is of unexpected type: %s", type(sensor))
+            self.sensor = sensor  # the property validates and converts
 
 
     def __repr__(self):
@@ -1358,10 +1351,43 @@ class Detector(metaclass=DetectorMeta):
     def delta_dummy(self, value=None):
         self._delta_dummy = value
 
-    #TODO: I see that filename and orientation are properties, sensor not. Should sensor follow the style?
     @property
     def orientation(self):
         return self._orientation
+
+    @property
+    def sensor(self):
+        """Configuration of the sensor: material and thickness, or None"""
+        return self._sensor
+
+    @sensor.setter
+    def sensor(self, sensor):
+        """Set the sensor configuration, converting a dict on the way.
+
+        The conversion has to happen here rather than in the constructor: a
+        detector is also configured from a serialized description, where the
+        sensor is a plain dict, and `get_config` later expects to find a
+        `SensorConfig` back.
+
+        An unexpected type is logged and discarded rather than raising, which
+        keeps a bad entry in a configuration file from making a detector
+        unusable.
+
+        :param sensor: SensorConfig, dict as produced by `SensorConfig.as_dict`,
+            or None to clear the configuration
+        """
+        if isinstance(sensor, dict):
+            sensor = SensorConfig.from_dict(sensor)
+        if sensor is None:
+            self._sensor = None
+        elif isinstance(sensor, SensorConfig):
+            if sensor not in self.SENSORS:
+                logger.warning("Sensor %s not in allowed SENSORS: [%s].", sensor,
+                               "|".join(str(i) for i in self.SENSORS))
+            self._sensor = sensor
+        else:
+            logger.error("Sensor is of unexpected type: %s, discarded", type(sensor))
+            self._sensor = None
 
     @property
     def origin(self):

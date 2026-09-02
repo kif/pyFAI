@@ -39,7 +39,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2026"
+__date__ = "28/08/2026"
 __status__ = "production"
 __docformat__ = "restructuredtext"
 
@@ -554,11 +554,9 @@ class Geometry:
             t2 = t2.reshape(shape)
             t3 = t3.reshape(shape)
 
-            # correct orientation:
-            if self.detector.orientation in (1, 2):
-                numpy.negative(t1, out=t1)
-            if self.detector.orientation in (1, 4):
-                numpy.negative(t2, out=t2)
+            # Nota: no orientation correction here. The orientation is fully
+            # handled by the detector, which remaps the pixel index onto the
+            # physical position; negating t1/t2 would flip the geometry twice.
         return (t3, t1, t2)
 
     def tth(self, d1, d2, param=None, path="cython"):
@@ -2658,12 +2656,18 @@ class Geometry:
     def __eq__(self, other):
         """Checks two geometries are equivalent.
 
+        Nota: the detector orientation needs not be listed here, it is covered
+        by the comparison of the detectors themselves since `Detector.__eq__`
+        already includes it.
+
         Typing will wait python 3.14"""
-        for key in self._IMMUTABLE_ATTRS+("parallax","detector", "orientation"):
+        for key in self._IMMUTABLE_ATTRS+("parallax", "detector"):
+            # A missing attribute on `self` is a bug and must not be silenced,
+            # while `other` may be any object and then simply differs.
+            here = self.__getattribute__(key)
             try:
-                here =  self.__getattribute__(key)
                 there = other.__getattribute__(key)
-            except Exception:
+            except AttributeError:
                 return False
             if here != there:
                 return False

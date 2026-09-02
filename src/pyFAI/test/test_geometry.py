@@ -33,8 +33,9 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "28/08/2026"
 
+import copy
 import itertools
 import json
 import logging
@@ -620,6 +621,21 @@ class TestBugRegression(unittest.TestCase):
         self.assertLess(delta_array.max(), numpy.pi, "delta_array is less than pi")
         self.assertTrue(numpy.allclose(delta_array, deltaChi, atol=7e-6), "delta_array matches deltaChi")
 
+    def test_equality(self):
+        """`__eq__` used to compare an `orientation` attribute which `Geometry`
+        does not have: the AttributeError was silenced by a bare `except` and
+        every comparison returned False, even between identical geometries."""
+        kwargs = {"dist": 0.1, "poni1": 0.005, "poni2": 0.005,
+                  "detector": "Imxpad S10", "wavelength": 1e-10}
+        geo1 = geometry.Geometry(**kwargs)
+        self.assertEqual(geo1, geometry.Geometry(**kwargs), "identical geometries are equal")
+        self.assertEqual(geo1, copy.deepcopy(geo1), "deepcopy equals the original")
+        self.assertNotEqual(geo1, geometry.Geometry(**dict(kwargs, dist=0.2)),
+                            "geometries with a different distance differ")
+        self.assertNotEqual(geo1, geometry.Geometry(**dict(kwargs, detector="Pilatus100k")),
+                            "geometries with a different detector differ")
+        self.assertNotEqual(geo1, "not a geometry", "comparison with another type is False")
+
     def test_bug2679(self):
         ai = load({"dist":0.1, "rot1":0.1, "detector":"Pilatus100k"})
         with utilstest.TestLogging(logger='pyFAI.DEPRECATION', warning=0):
@@ -666,23 +682,23 @@ class TestOrientation(unittest.TestCase):
         self.assertTrue(numpy.allclose(r2, r4[-1::-1, -1::-1]), "orientation 2,4 inversion match tth")
 
     def test_array_from_unit_chi_center(self):
-        r1 = self.ai1.array_from_unit(unit="chi_deg")
-        r2 = self.ai2.array_from_unit(unit="chi_deg")
-        r3 = self.ai3.array_from_unit(unit="chi_deg")
-        r4 = self.ai4.array_from_unit(unit="chi_deg")
+        r1 = self.ai1.array_from_unit(unit="chi_rad")
+        r2 = self.ai2.array_from_unit(unit="chi_rad")
+        r3 = self.ai3.array_from_unit(unit="chi_rad")
+        r4 = self.ai4.array_from_unit(unit="chi_rad")
 
         self.assertFalse(numpy.allclose(r1, r2), "orientation 1,2 differ chi")
         self.assertFalse(numpy.allclose(r1, r3), "orientation 1,3 differ chi")
         self.assertFalse(numpy.allclose(r1, r4), "orientation 1,4 differ chi")
 
-        self.assertTrue(-180 < r1.min() < -179, "Orientation 1 lower range matches")
-        self.assertTrue(-91 < r1.max() < -90, "Orientation 1 upperrange matches")
-        self.assertTrue(-90 < r2.min() < -89, "Orientation 2 lower range matches")
-        self.assertTrue(-1 < r2.max() < 0, "Orientation 2 upperrange matches")
-        self.assertTrue(0 < r3.min() < 1, "Orientation 3 lower range matches")
-        self.assertTrue(89 < r3.max() < 90, "Orientation 3 upperrange matches")
-        self.assertTrue(90 < r4.min() < 91, "Orientation 4 lower range matches")
-        self.assertTrue(179 < r4.max() < 180, "Orientation 4 upperrange matches")
+        # All 4 geometries share the same PONI, so the orientation is a pure
+        # re-indexing of the pixels: chi is flipped exactly like tth and the set
+        # of azimuthal values is preserved. Compared modulo 2pi.
+        self.assertTrue(allclose_mod(r1, numpy.fliplr(r2), atol=1e-5), "orientation 1,2 flipped match chi")
+        self.assertTrue(allclose_mod(r1, numpy.flipud(r4), atol=1e-5), "orientation 1,4 flipped match chi")
+        self.assertTrue(allclose_mod(r2, numpy.flipud(r3), atol=1e-5), "orientation 2,3 flipped match chi")
+        self.assertTrue(allclose_mod(r1, r3[-1::-1, -1::-1], atol=1e-5), "orientation 1,3 inversion match chi")
+        self.assertTrue(allclose_mod(r2, r4[-1::-1, -1::-1], atol=1e-5), "orientation 2,4 inversion match chi")
 
     def test_array_from_unit_tth_corner(self):
         r1 = self.ai1.array_from_unit(unit="2th_rad", typ="corner")
@@ -730,13 +746,15 @@ class TestOrientation(unittest.TestCase):
         self.assertFalse(numpy.allclose(z2, z4), "orientation 2,4 differ")
         self.assertFalse(numpy.allclose(z3, z4), "orientation 3,4 differ")
 
-        # Check that the transformation is OK. This is with complex number thus dense & complicated !
-        self.assertTrue(numpy.allclose(z1, -numpy.fliplr(z2.conj())), "orientation 1,2 flipped")
-        self.assertTrue(numpy.allclose(z1, -z3[-1::-1, -1::-1]), "orientation 1,3 inversed")
-        self.assertTrue(numpy.allclose(z1, numpy.flipud(z4.conj())), "orientation 1,4 flipped")
-        self.assertTrue(numpy.allclose(z2, numpy.flipud(z3.conj())), "orientation 2,3 flipped")
-        self.assertTrue(numpy.allclose(z2, -z4[-1::-1, -1::-1]), "orientation 2,4 inversion")
-        self.assertTrue(numpy.allclose(z3, -numpy.fliplr(z4.conj())), "orientation 3,4 flipped")
+        # Check that the transformation is OK. Since the orientation only
+        # re-indexes the pixels (same PONI here), z = tth*exp(i*chi) is simply
+        # flipped: no conjugation nor sign change is involved.
+        self.assertTrue(numpy.allclose(z1, numpy.fliplr(z2)), "orientation 1,2 flipped")
+        self.assertTrue(numpy.allclose(z1, z3[-1::-1, -1::-1]), "orientation 1,3 inversed")
+        self.assertTrue(numpy.allclose(z1, numpy.flipud(z4)), "orientation 1,4 flipped")
+        self.assertTrue(numpy.allclose(z2, numpy.flipud(z3)), "orientation 2,3 flipped")
+        self.assertTrue(numpy.allclose(z2, z4[-1::-1, -1::-1]), "orientation 2,4 inversion")
+        self.assertTrue(numpy.allclose(z3, numpy.fliplr(z4)), "orientation 3,4 flipped")
 
     def test_chi(self):
         epsilon = 6e-3
@@ -819,48 +837,60 @@ class TestOrientation2(unittest.TestCase):
         self.assertTrue(numpy.allclose(r3, r4, atol=1e-8))
 
     def test_center_chi_center(self):
-        r1 = self.ai1.array_from_unit(unit="chi_rad", typ="center") / numpy.pi
-        r2 = self.ai2.array_from_unit(unit="chi_rad", typ="center") / numpy.pi
-        r3 = self.ai3.array_from_unit(unit="chi_rad", typ="center") / numpy.pi
-        r4 = self.ai4.array_from_unit(unit="chi_rad", typ="center") / numpy.pi
-        self.assertTrue(numpy.allclose(r1[:, 200:], r2[:, 200:], atol=1e-8))
-        self.assertTrue(numpy.allclose(r1[:, 200:], r3[:, 200:], atol=1e-8))
-        self.assertTrue(numpy.allclose(r1[:, 200:], r4[:, 200:], atol=1e-8))
-        self.assertTrue(numpy.allclose(r2[:, 200:], r3[:, 200:], atol=1e-8))
-        self.assertTrue(numpy.allclose(r2[:, 200:], r4[:, 200:], atol=1e-8))
-        self.assertTrue(numpy.allclose(r3[:, 200:], r4[:, 200:], atol=1e-8))
+        """The 4 geometries describe the SAME experiment (the PONI is mirrored
+        along with the orientation), but the frame attached to the detector
+        changes handedness, so chi is mirrored accordingly:
+        orientation 2 negates the slow axis, 4 the fast one, 1 both.
+        Restricted to [:, 200:] to stay away from the chi discontinuity."""
+        r1 = self.ai1.array_from_unit(unit="chi_rad", typ="center")[:, 200:]
+        r2 = self.ai2.array_from_unit(unit="chi_rad", typ="center")[:, 200:]
+        r3 = self.ai3.array_from_unit(unit="chi_rad", typ="center")[:, 200:]
+        r4 = self.ai4.array_from_unit(unit="chi_rad", typ="center")[:, 200:]
+        pi = numpy.pi
+        self.assertTrue(allclose_mod(r1, pi - r2, atol=1e-4), "chi1 == pi - chi2")
+        self.assertTrue(allclose_mod(r1, r3 + pi, atol=1e-4), "chi1 == chi3 + pi")
+        self.assertTrue(allclose_mod(r1, -r4, atol=1e-4), "chi1 == -chi4")
+        self.assertTrue(allclose_mod(r2, -r3, atol=1e-4), "chi2 == -chi3")
+        self.assertTrue(allclose_mod(r2, r4 + pi, atol=1e-4), "chi2 == chi4 + pi")
+        self.assertTrue(allclose_mod(r3, pi - r4, atol=1e-4), "chi3 == pi - chi4")
 
     def test_center_tth_center(self):
         r1 = self.ai1.array_from_unit(unit="2th_deg", typ="corner")
         r2 = self.ai2.array_from_unit(unit="2th_deg", typ="corner")
         r3 = self.ai3.array_from_unit(unit="2th_deg", typ="corner")
         r4 = self.ai4.array_from_unit(unit="2th_deg", typ="corner")
-        tth1 = r1[..., 0].mean(axis=-1)
-        chi1 = r1[..., 1].mean(axis=-1)
-        tth2 = r2[..., 0].mean(axis=-1)
-        chi2 = r2[..., 1].mean(axis=-1)
-        tth3 = r3[..., 0].mean(axis=-1)
-        chi3 = r3[..., 1].mean(axis=-1)
-        tth4 = r4[..., 0].mean(axis=-1)
-        chi4 = r4[..., 1].mean(axis=-1)
+        tths = {}
+        chis = {}
+        for idx, r in ((1, r1), (2, r2), (3, r3), (4, r4)):
+            # Nota: in a corner array the radial part uses the requested unit
+            # (here degrees) while the azimuthal part is always in radian.
+            tth, chi = r[..., 0], r[..., 1]
+            tths[idx] = tth.mean(axis=-1)
+            # average the corners as complex numbers: a plain mean of the
+            # azimuthal angles is meaningless across the +/-pi discontinuity
+            z = (tth * numpy.cos(chi) + 1j * tth * numpy.sin(chi)).mean(axis=-1)
+            chis[idx] = numpy.angle(z)
 
         res = []
-        tths = [tth1, tth2, tth3, tth4]
         thres = 0.1
-        for idx, a1 in enumerate(tths):
-            for a2 in tths[:idx]:
-                res.append(numpy.allclose(a1, a2, atol=thres))
-        # print(res)
+        for idx in (1, 2, 3, 4):
+            for jdx in range(1, idx):
+                res.append(numpy.allclose(tths[idx], tths[jdx], atol=thres))
         self.assertTrue(numpy.all(res), "2th is OK")
 
-        res = []
-        tths = [chi1, chi2, chi3, chi4]
-        thres = 0.1
-        for idx, a1 in enumerate(tths):
-            for a2 in tths[:idx]:
-                res.append(numpy.allclose(a1[:, 200:], a2[:, 200:], atol=thres))
-        # print(res)
-        self.assertTrue(numpy.all(res), "2th is OK")
+        # chi: same experiment but frames of opposite handedness, so the
+        # azimuthal angle is mirrored rather than identical, see
+        # test_center_chi_center. In radian, hence the tighter threshold.
+        pi = numpy.pi
+        relations = [(1, pi - chis[2], "chi1 == pi - chi2"),
+                     (1, chis[3] + pi, "chi1 == chi3 + pi"),
+                     (1, -chis[4], "chi1 == -chi4"),
+                     (2, -chis[3], "chi2 == -chi3"),
+                     (2, chis[4] + pi, "chi2 == chi4 + pi"),
+                     (3, pi - chis[4], "chi3 == pi - chi4")]
+        for ref, expected, msg in relations:
+            self.assertTrue(allclose_mod(chis[ref][:, 200:], expected[:, 200:],
+                                         atol=2e-3), msg)
 
 
 class TestCrystFEL(unittest.TestCase):

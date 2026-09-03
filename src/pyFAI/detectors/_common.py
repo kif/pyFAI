@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/09/2026"
+__date__ = "03/09/2026"
 __status__ = "stable"
 
 import copy
@@ -381,7 +381,9 @@ class Detector(metaclass=DetectorMeta):
         if "max_shape" in config:
             self.max_shape = config.get("max_shape")
         self._orientation = Orientation(config.get("orientation", 0))
-        self.sensor = SensorConfig(config["sensor"]) if "sensor" in config else None
+        # the property converts the serialized dict, `SensorConfig(dict)` would
+        # store it as the `material` field instead
+        self.sensor = config.get("sensor")
         return self
 
     def get_config(self):
@@ -1585,7 +1587,9 @@ class NexusDetector(Detector):
                          config)
 
         self._orientation = Orientation(config.get("orientation", 0))
-        self.sensor = SensorConfig(config["sensor"]) if "sensor" in config else None
+        # the property converts the serialized dict, `SensorConfig(dict)` would
+        # store it as the `material` field instead
+        self.sensor = config.get("sensor")
 
         return self
 

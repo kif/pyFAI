@@ -36,7 +36,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2026"
+__date__ = "03/09/2026"
 __status__ = "stable"
 
 import copy
@@ -82,6 +82,23 @@ class SensorMaterial:
 
     def __str__(self):
         return f"{self.name}-{self.__class__.__name__}"
+
+    def __eq__(self, other):
+        """Two materials are the same when they share the name and the density.
+
+        Without this, comparison falls back on identity: a detector carrying a
+        sensor compared unequal to its own `copy.deepcopy`, since the copy holds
+        an equivalent but distinct material. `_data` is not compared, being
+        derived from the name.
+        """
+        # not self.__class__ as it could be a derived class
+        if not isinstance(other, SensorMaterial):
+            return NotImplemented
+        return self.name == other.name and self.rho == other.rho
+
+    def __hash__(self):
+        """Consistent with `__eq__`, so a material remains usable as a key"""
+        return hash((self.name, self.rho))
 
     def init(self):
         """Read the sensor data and split them in chunks"""

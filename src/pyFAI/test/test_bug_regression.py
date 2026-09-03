@@ -35,7 +35,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@esrf.fr"
 __license__ = "MIT"
 __copyright__ = "2015-2025 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2026"
+__date__ = "02/09/2026"
 
 import copy
 import logging
@@ -796,6 +796,42 @@ class TestBugRegression(unittest.TestCase):
         # print(poni.detector)
         poni.write(StringIO())
 
+    def test_bug_2915(self):
+        """Saving a poni file used to fail with `'dict' object has no attribute
+        'as_dict'` when the detector came from a file and a sensor was added on
+        top of it, which is what pyFAI-calib2 does.
+
+        `PoniFile` rebuilds the detector from `detector_config`, where the
+        sensor is a serialized dict; `NexusDetector` then kept that dict as is,
+        so the next call to `get_config()` blew up while writing the file.
+        """
+        from ..detectors import sensors
+        from ..io import ponifile
+        filename = UtilsTest.getimage("WOS.h5")
+        detector = detectors.NexusDetector(filename=filename)
+        sensor = sensors.SensorConfig.from_dict({"material": "CdTe",
+                                                 "thickness": 1000e-6})
+        detector.sensor = sensor
+        config = detector.get_config()
+        self.assertIsInstance(config["sensor"], dict, "the sensor is serialized")
+
+        # the dict pyFAI-calib2 builds before writing the file
+        dico = {"dist": 0.1, "poni1": 0.1, "poni2": 0.1,
+                "rot1": 0.0, "rot2": 0.0, "rot3": 0.0,
+                "wavelength": 1e-10,
+                "detector": detector.__class__.__name__,
+                "detector_config": config}
+        poni = ponifile.PoniFile(dico)
+        self.assertIsInstance(poni.detector.sensor, sensors.SensorConfig,
+                              "the rebuilt detector holds a SensorConfig")
+        self.assertEqual(poni.detector.sensor, sensor, "sensor preserved")
+
+        destination = os.path.join(UtilsTest.tempdir, "bug_2915.poni")
+        with open(destination, "w") as fd:
+            poni.write(fd)  # used to raise AttributeError
+        with open(destination) as fd:
+            content = fd.read()
+        self.assertIn("CdTe", content, "the sensor is saved in the poni file")
 
 class TestBug1703(unittest.TestCase):
     """

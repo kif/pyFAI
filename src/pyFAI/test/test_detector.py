@@ -32,7 +32,7 @@ __author__ = "Picca Frédéric-Emmanuel, Jérôme Kieffer",
 __contact__ = "picca@synchrotron-soleil.fr"
 __license__ = "MIT+"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/08/2026"
+__date__ = "03/09/2026"
 
 import logging
 import os
@@ -416,6 +416,30 @@ class TestDetector(unittest.TestCase):
         print(det4)
         print(det2==det4)
         self.assertEqual(det2, det4, "after serialization to HDF5")
+
+    def test_sensor_nexus_roundtrip(self):
+        """A NexusDetector rebuilt from its own config must keep a real
+        `SensorConfig`.
+
+        Regression: it used to hold the plain dict from the config, which made
+        the next `get_config()` fail with `'dict' object has no attribute
+        'as_dict'` -- the exception raised when saving a poni file from
+        pyFAI-calib2 with a detector loaded from a file plus a sensor.
+        """
+        filename = os.path.join(UtilsTest.tempdir, "test_sensor_nexus.h5")
+        detector_factory("pilatus1M").save(filename)
+        sensor = sensors.SensorConfig(sensors.Si_MATERIAL, 450e-6)
+
+        # the constructor is given the serialized form, as the factory does
+        det1 = detectors.NexusDetector(filename=filename, sensor=sensor.as_dict())
+        self.assertIsInstance(det1.sensor, sensors.SensorConfig, "dict converted")
+        self.assertEqual(det1.sensor, sensor, "sensor preserved")
+
+        # the full path: serialize, rebuild, serialize again
+        det2 = detector_factory("NexusDetector", det1.get_config())
+        self.assertIsInstance(det2.sensor, sensors.SensorConfig, "converted by the factory")
+        self.assertEqual(det2.get_config()["sensor"], sensor.as_dict(),
+                         "config round-trips")
 
     def test_sensor2(self):
         ts = sensors.SensorConfig.from_dict({"material":"Si", "thickness":320e-6})

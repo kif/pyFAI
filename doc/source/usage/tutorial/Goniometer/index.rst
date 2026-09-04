@@ -18,4 +18,4 @@ Advanced tutorials on goniometer calibration in pyFAI.
    Rotation-XPADS540/D2AM-15
    Fit_wavelength/fit_energy
    MX-calibrate/MX-calibrate
-   Excentric-coniometer/Calibrate_excentric
+   Eccentric-goniometer/Calibrate_eccentric

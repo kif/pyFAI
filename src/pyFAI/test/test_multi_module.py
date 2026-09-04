@@ -39,10 +39,11 @@ import os
 import unittest
 
 import numpy
+from scipy import optimize
 
 from .. import detector_factory
 from ..detectors import Detector
-from ..detectors.multi_module import ModuleParam, MultiModule
+from ..detectors.multi_module import ModuleParam, MultiModule, MultiModuleRefinement
 from .utilstest import UtilsTest
 
 logger = logging.getLogger(__name__)
@@ -190,10 +191,43 @@ class TestMultiModule(unittest.TestCase):
         self.assertTrue(numpy.array_equal(back.mask, new.mask), "mask survives the NeXus round-trip")
 
 
+class TestUncertainties(unittest.TestCase):
+    """Tests for the estimation of the precision of the refinement"""
+
+    @classmethod
+    def setUpClass(cls):
+        detector = Detector(pixel1=1e-4, pixel2=1e-4, max_shape=(21, 21))
+        mask = numpy.zeros((21, 21), dtype=numpy.int8)
+        mask[10,:] = 1
+        mask[:, 10] = 1
+        detector.mask = mask
+        cls.mm = MultiModuleRefinement.from_detector(detector)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mm = None
+
+    def test_diagonal_jacobian(self):
+        """With a diagonal jacobian, the covariance matrix is known analytically"""
+        jac = numpy.zeros((6, 3))
+        jac[:3,:3] = numpy.diag([1.0, 2.0, 4.0])
+        # sigma_i = sqrt(2 * cost / (npt - nparam)) / jac_ii, here the prefactor is 1
+        result = optimize.OptimizeResult(jac=jac, cost=1.5)
+        sigma = self.mm.calc_uncertainties(result)
+        self.assertTrue(numpy.allclose(sigma, [1.0, 0.5, 0.25]),
+                        f"unexpected standard deviation: {sigma}")
+
+    def test_scalar_result(self):
+        """A result which does not come from a least-squares optimizer is rejected"""
+        result = optimize.OptimizeResult(x=numpy.zeros(3), fun=1.0)
+        self.assertRaises(RuntimeError, self.mm.calc_uncertainties, result)
+
+
 def suite():
     testsuite = unittest.TestSuite()
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
     testsuite.addTest(loader(TestMultiModule))
+    testsuite.addTest(loader(TestUncertainties))
     return testsuite
 
 

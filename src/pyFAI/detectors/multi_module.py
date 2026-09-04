@@ -41,6 +41,7 @@ __date__ = "04/09/2026"
 __status__ = "development"
 
 import copy
+import logging
 from dataclasses import dataclass
 from math import cos, pi, sin
 
@@ -52,6 +53,8 @@ from ..ext import _geometry
 from ..io.ponifile import PoniFile
 from ..third_party.classproperties import classproperty
 from ._common import Detector
+
+logger = logging.getLogger(__name__)
 
 module_d = numpy.dtype(
     [
@@ -254,7 +257,7 @@ class MultiModule:
         pixel1 = parent.pixel1
         pixel2 = parent.pixel2
         # 4D array with, for every pixel, the (z, dim1, dim2) position of its 4 corners
-        corners = parent.get_pixel_corners(correct_binning=True).astype(numpy.float64)
+        corners = parent.get_pixel_corners(correct_binning=False).astype(numpy.float64)
         param_idx = 0
         for module_id in sorted(self.modules):
             module = self.modules[module_id]
@@ -277,7 +280,7 @@ class MultiModule:
             sub[..., 2] = d2.reshape(shape) * pixel2
             corners[module.mask] = sub
         detector = Detector(pixel1=pixel1, pixel2=pixel2,
-                            max_shape=parent.shape,
+                            max_shape=parent.max_shape,
                             orientation=parent.orientation,
                             sensor=copy.deepcopy(parent.sensor))
         detector.mask = parent.mask
@@ -286,6 +289,10 @@ class MultiModule:
 
 
 class MultiModuleRefinement(MultiModule):
+
+    LEAST_SQUARES = ("lm", "trf", "dogbox")
+    "Optimizers from scipy.optimize.least_squares, they work on the vector of residuals"
+
     def __init__(self):
         super().__init__()
         self.modulated_points = {}  # key: npt filename, value record array with coordinates, ring & module
@@ -422,7 +429,13 @@ class MultiModuleRefinement(MultiModule):
             idx += PoniParam.nb_param
         return param
 
-    def print_param(self, param):
+    def print_param(self, param, sigma=None):
+        """Display the parameter vector, module per module and geometry per geometry
+
+        :param param: vector with all the parameters, as provided by `init_param`
+        :param sigma: optional vector with the standard deviation of every parameter, as
+                      provided by `calc_uncertainties`. Displayed after a ± sign.
+        """
         idx = 0
         for i, m in self.modules.items():
             if m.fixed:
@@ -430,13 +443,15 @@ class MultiModuleRefinement(MultiModule):
             else:
                 res = f"module #{i:2d}:"
                 for i, n in enumerate(ModuleParam.__dataclass_fields__, start=idx):
-                    res += f" {n:5s}= {param[i]},"
+                    res += (f" {n:5s}= {param[i]}," if sigma is None else
+                            f" {n:5s}= {param[i]:9.6f} ± {sigma[i]:8.6f},")
                 idx += ModuleParam.nb_param
                 print(res)
         for p in self.ponis:
             res = f"{p}:"
             for i, n in enumerate(PoniParam.__dataclass_fields__, start=idx):
-                res += f" {n:5s}= {param[i]:6f},"
+                res += (f" {n:5s}= {param[i]:6f}," if sigma is None else
+                        f" {n:5s}= {param[i]:9.6f} ± {sigma[i]:8.6f},")
             print(res)
             idx += PoniParam.nb_param
 
@@ -444,6 +459,56 @@ class MultiModuleRefinement(MultiModule):
         delta = self.residu(param)
         return numpy.dot(delta, delta)
 
-    def refine(self, param, method="SLSQP"):
+    def refine(self, param, method="SLSQP", **kwargs):
+        """Refine the position of the modules and the geometry of every image
+
+        Two families of optimizers are available:
+
+        * least-squares optimizers ("lm", "trf" and "dogbox") work on the vector of
+          residuals and take advantage of its derivatives. They are much faster and more
+          reliable on this kind of problem, where the number of parameters is large. In
+          addition, the jacobian they provide allows `calc_uncertainties` to estimate the
+          precision of the fit. "lm" (Levenberg-Marquardt) is the algorithm used in the
+          publication this module is based on.
+        * scalar minimizers from `scipy.optimize.minimize` ("SLSQP", "simplex", ...) only
+          see the cost function, i.e. the sum of the squared residuals.
+
+        :param param: vector with the initial guess of the parameters, see `init_param`
+        :param method: name of the optimizer, "simplex" is an alias for "Nelder-Mead"
+        :param kwargs: any extra keyword argument, passed to the scipy optimizer
+        :return: the OptimizeResult object from scipy. Nota: `result.fun` contains the
+                 vector of residuals with least-squares optimizers and the value of the
+                 cost function with the other ones.
+        """
         method = "Nelder-Mead" if method.lower() == "simplex" else method
-        return optimize.minimize(self.cost, param, method=method)
+        if method.lower() in self.LEAST_SQUARES:
+            return optimize.least_squares(self.residu, param, method=method.lower(), **kwargs)
+        return optimize.minimize(self.cost, param, method=method, **kwargs)
+
+    def calc_uncertainties(self, result):
+        """Estimate the standard deviation of the refined parameters
+
+        The covariance matrix is obtained by inverting $J^tJ$, where $J$ is the jacobian of
+        the residuals at the solution, and by scaling it with the variance of the residuals.
+        This is the very calculation performed by `scipy.optimize.curve_fit`.
+
+        :param result: OptimizeResult returned by `refine` with a least-squares method
+        :return: array with the standard deviation of every parameter, in the same order
+                 as `result.x`
+        """
+        jac = getattr(result, "jac", None)
+        if jac is None or jac.ndim != 2:
+            raise RuntimeError("`result` should come from a least-squares optimizer, "
+                               "i.e. from refine(..., method='lm')")
+        npt, nparam = jac.shape
+        # Moore-Penrose inverse of J^t.J, discarding the null singular values
+        _, sval, vt = numpy.linalg.svd(jac, full_matrices=False)
+        threshold = numpy.finfo(float).eps * max(jac.shape) * sval[0]
+        vt = vt[sval > threshold]
+        sval = sval[sval > threshold]
+        covariance = (vt.T / sval ** 2) @ vt
+        if npt > nparam:
+            covariance = covariance * 2.0 * result.cost / (npt - nparam)
+        else:
+            logger.warning("Less residuals than parameters: uncertainties are meaningless")
+        return numpy.sqrt(numpy.diag(covariance))

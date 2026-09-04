@@ -37,9 +37,10 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2026"
+__date__ = "04/09/2026"
 __status__ = "development"
 
+import copy
 from dataclasses import dataclass
 from math import cos, pi, sin
 
@@ -50,6 +51,7 @@ from ..control_points import ControlPoints
 from ..ext import _geometry
 from ..io.ponifile import PoniFile
 from ..third_party.classproperties import classproperty
+from ._common import Detector
 
 module_d = numpy.dtype(
     [
@@ -102,7 +104,7 @@ class SingleModule:
             self.mask = mask == index
         else:
             self.mask = mask
-        self.fixed = False
+        self.fixed = fixed
         self.param = ModuleParam()
         self.center = None
         self.bounding_box = None
@@ -217,6 +219,70 @@ class MultiModule:
     @property
     def free_modules(self):
         return sum(not m.fixed for m in self.modules.values())
+
+    def to_detector(self, param=None):
+        """Build a detector where every pixel is displaced according to the module positions
+
+        The returned detector has its `_pixel_corners` attribute defined, i.e. it holds the
+        actual position of the 4 corners of every pixel, module displacement included.
+        Such a detector can be used directly for azimuthal integration, saved as a NeXus
+        file with `detector.save(filename)` and read back with
+        `pyFAI.detector_factory(filename)`.
+
+        The result is a generic `Detector` and not a copy of the parent one: some detector
+        classes (like `Eiger`) overwrite `calc_cartesian_positions` and would silently
+        ignore the pixel corners. Pixel size, shape, orientation, mask and sensor are
+        inherited from the parent detector.
+
+        Since the module displacement is modeled as a rotation and a translation *within*
+        the plane of the detector, the out-of-plane coordinate of the pixel corners is left
+        unchanged (it is null for a flat detector).
+
+        :param param: optional vector with the refined parameters of the modules, as
+                      returned by `MultiModuleRefinement.refine`. It contains 3 values
+                      (d0, d1, rot) per free module; any trailing value, like the
+                      poni-parameters, is ignored. When None, the parameters currently
+                      stored in each module are used.
+        :return: a Detector instance with the `_pixel_corners` attribute defined
+        """
+        parent = self.detector
+        if param is not None:
+            expected = ModuleParam.nb_param * self.free_modules
+            if len(param) < expected:
+                raise ValueError(f"`param` should provide at least {expected} values "
+                                 f"({ModuleParam.nb_param} per free module), got {len(param)}")
+        pixel1 = parent.pixel1
+        pixel2 = parent.pixel2
+        # 4D array with, for every pixel, the (z, dim1, dim2) position of its 4 corners
+        corners = parent.get_pixel_corners(correct_binning=True).astype(numpy.float64)
+        param_idx = 0
+        for module_id in sorted(self.modules):
+            module = self.modules[module_id]
+            if module.fixed:
+                # `calc_displacement_map` is the identity for those, skip them
+                continue
+            if param is None:
+                sub_param = None
+            else:
+                sub_param = ModuleParam(*param[ModuleParam.nb_param * param_idx:
+                                               ModuleParam.nb_param * (param_idx + 1)])
+            param_idx += 1
+            # fancy indexing provides a copy with the shape (nb_pixel, 4, 3)
+            sub = corners[module.mask]
+            shape = sub.shape[:-1]
+            d1, d2 = module.calc_displacement_map(d1=sub[..., 1] / pixel1,
+                                                  d2=sub[..., 2] / pixel2,
+                                                  param=sub_param)
+            sub[..., 1] = d1.reshape(shape) * pixel1
+            sub[..., 2] = d2.reshape(shape) * pixel2
+            corners[module.mask] = sub
+        detector = Detector(pixel1=pixel1, pixel2=pixel2,
+                            max_shape=parent.shape,
+                            orientation=parent.orientation,
+                            sensor=copy.deepcopy(parent.sensor))
+        detector.mask = parent.mask
+        detector.set_pixel_corners(corners)
+        return detector
 
 
 class MultiModuleRefinement(MultiModule):

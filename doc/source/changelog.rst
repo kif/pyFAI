@@ -11,7 +11,8 @@ Change-log of versions
 - New features:
 
   * `MultiModule.display()` draws the modules of a detector and the displacement of the corners highlighted (#2956)
-  * Median filtering on GPU is 3 to 12 times faster: the comb sort now spreads over the whole workgroup and sorts (key, index) pairs, in local memory when the bin fits.
+  * Median filtering on GPU is 3x faster: the comb sort now spreads over the whole workgroup and sorts (key, index) pairs, in local memory when the bin fits.
+  * `Integrate2dResult.rebin1d()` gains `radial_range` and `azimuth_range`, to extract the pattern of an azimuthal sector out of a single 2D integration (#2961)
 
 - Bug fixes:
 

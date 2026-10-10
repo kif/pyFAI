@@ -12,7 +12,8 @@ Change-log of versions
 
   * `MultiModule.display()` draws the modules of a detector and the displacement of the corners highlighted (#2956)
   * `Geometry.enable_parallax()`, `beam` parameter to switch from *barycenter* to *maximum* of the peak.
-  * Median filtering on GPU is 8 to 18 times faster and no longer sorts the bin: the two bounds of the quantile window come from a weighted radix-select, which also frees the 16 bytes per non-zero element of the former work array.
+  * Median filtering on GPU is 3x faster and no longer sorts the bin: the two bounds of the quantile window come from a weighted radix-select.
+  * `Integrate2dResult.rebin1d()` gains `radial_range` and `azimuth_range`, to extract the pattern of an azimuthal sector out of a single 2D integration (#2961)
 
 - Bug fixes:
 
